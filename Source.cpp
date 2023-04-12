@@ -21,16 +21,18 @@ class individual{
     public:
         long double x;
         long double y;
+        
+        unsigned int rank;
 
         unsigned int indSize;
 
         long double fitness;
 
-        individual(){ // initialize fitness
+        void calculateFitness(){ 
             fitness = 9*pow(this->x, 4) - 8*pow(this->y, 3) + 12*pow(this->x, 2) + 81*this->y + 12;
         }
 
-        void initializeIndividual(long double minBound, long double maxBound, unsigned int indSize){ 
+        void initializeIndividual(long double minBound, long double maxBound){ 
 
             // x and y should take different bounds??
 
@@ -41,13 +43,16 @@ class individual{
         }        
 }; 
 
+class population{
+
+    individual ind;
+};
+
 void initializePopulation(vector<long double> &pop, long double minBound, long double maxBound, unsigned popNumber){
 
     if(!pop.empty()){
         throw runtime_error("Error: Population vector is not empty");
     }
-
-    srand(time(0));
 
     for(int i=0; i < popNumber; i++){
         pop.push_back(getRand(minBound, maxBound));       
@@ -71,7 +76,19 @@ long double mutate(long double child, long double percent){
 
 int main(){
 
-    cout << "\n\n\n\n\n\n\n\n\n";
+    const unsigned int populationSize = 10;
+
+    vector<individual> population(populationSize); 
+
+    // Initialize Population
+    for(int i=0; i < populationSize; i++){
+        population[i].initializeIndividual(-100, 100);
+        population[i].calculateFitness();
+    }
+
+    // 
+
+
 
 
 
