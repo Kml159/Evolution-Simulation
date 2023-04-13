@@ -4,6 +4,8 @@
 #include <ctime>   // required for time()
 #include <vector>
 #include <iomanip>
+#include <algorithm>
+#include <random> 
 
 using namespace std;
 
@@ -24,7 +26,7 @@ class individual{
         long double fitness;
 
         void calculateFitness(){ 
-            fitness = 9*pow(this->x, 4) - 8*pow(this->y, 3) + 12*pow(this->x, 2) + 81*this->y + 12;
+            fitness = -9*pow(this->x, 4) - 8*pow(this->y, 3) + 12*pow(this->x, 2) + 81*this->y + 12;
         }
 
         void initializeIndividual(long double minBound, long double maxBound){ 
