@@ -24,6 +24,16 @@
 
 using namespace std;
 
+// Define an enum named Operation
+enum class Action {
+    UP,
+    LEFT,
+    RIGHT,
+    DOWN,
+    STAY,
+    KILL
+};
+
 unordered_map<string, string> colorMap = {
         {"Red", RED_TEXT},
         {"Green", GREEN_TEXT},

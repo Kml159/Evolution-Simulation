@@ -8,7 +8,7 @@
 
 using namespace std;
 
-#define pop 0.01
+#define pop 0.1
 #define stepTime 200   // FPS by milisecond
 
 struct dummy{
@@ -35,76 +35,74 @@ class table{
     private:
 
         vector<vector<T*>> mat;
+        unsigned int populationSize;
 
         void randomize(){
+            // Randomize all matrix elements if exits
             for(int i=0; i < mat.size(); i++){
                 for(int j=0; j < mat.at(0).size(); j++){
-                    mat.at(i).at(j)->randomize();
+                    if(mat.at(i).at(j) != nullptr){mat.at(i).at(j)->randomize();}
                 }
             }
         }
 
         void print() const {
+            // Print whole board
             short gap = 2;
             if (mat.empty() || mat.at(0).empty()) {
                 throw invalid_argument("Matrix does not exist!\nCannot print.");
             }
 
-
-            // Print top border
             cout << string(mat.at(0).size() + 2 + (mat.at(0).size() + 1) * gap, '|') << endl;
-
             for (int i = 0; i < mat.size(); i++) {
-                // Print left border
                 cout << "| ";
-
                 for (int j = 0; j < mat.at(0).size(); j++) {
                     if (mat.at(i).at(j) == nullptr) {
                         cout << setw(gap) << " ";
                     } else {
                         cout << mat.at(i).at(j)->color << setw(gap) << mat.at(i).at(j)->symbol << RESET_TEXT;
                     }
-
-                    // Print space between elements
                     cout << " ";
                 }
-
-                // Print right border
                 cout << " |" << endl;
             }
-
-            // Print bottom border
             cout << string(mat.at(0).size() + 2 + (mat.at(0).size() + 1) * gap, '|') << endl;
         }
 
-
+        void printInfo() const {
+            cout << "\tPopulation Size:\t" << populationSize << endl;
+            cout << "\tCapacity:\t\t" << mat.size()*mat.at(0).size() << endl << endl;
+        }
 
         void clearScreen() const {cout << "\033[H\033[J";}
 
     public:
 
         table(unsigned int row, unsigned int col){
+            // Constructor
+            populationSize = 0;
             for(int i=0; i < row; i++){
                 vector<T*> arow;
                 for(int j=0; j < col; j++){
                     T* A = new T();
                     arow.push_back(A);
+                    populationSize++;
                 }
                 mat.push_back(arow);
             }
         }
 
         table(unsigned int const individualNumber, unsigned int const row, unsigned int const col){
-
+            // Constructor
             if(row*col < individualNumber){throw invalid_argument("individualNumber is invalid!");};
-
-            int count=0;
+            populationSize = 0;
             for(int i=0; i < row; i++){
                 vector<T*> arow;
                 for(int j=0; j < col; j++){
                     if(pop * 100 >= getRandom(1, 100)){
                         T* A = new T();
-                        arow.push_back(A);                        
+                        arow.push_back(A);
+                        populationSize++;
                     }
                     else{
                         arow.push_back(nullptr);
@@ -119,11 +117,13 @@ class table{
         }
 
         table(table &table){
+            // Copy Constructor
             this->mat = table.mat;
+            this->populationSize = table.populationSize;
         }
 
         ~table() {
-            // Release memory for each object in the matrix
+            // Destructor
             for (int i = 0; i < mat.size(); ++i) {
                 for (int j = 0; j < mat[i].size(); ++j) {
                     delete mat[i][j];
@@ -141,49 +141,54 @@ class table{
             }
             return true;
         }
-
+        
+        void handleAction(unsigned int i, unsigned int j, Action act){
+            switch (act) {
+                case Action::UP:
+                    // Handle UP
+                    if (isValid(i - 1, j)) {
+                        mat.at(i - 1).at(j) = mat.at(i).at(j);
+                        mat.at(i).at(j) = nullptr;
+                    }
+                    break;
+                case Action::LEFT:
+                    // Handle LEFT
+                    if (isValid(i, j - 1)) {
+                        mat.at(i).at(j - 1) = mat.at(i).at(j);
+                        mat.at(i).at(j) = nullptr;
+                    }
+                    break;
+                case Action::RIGHT:
+                    // Handle RIGHT
+                    if (isValid(i, j + 1)) {
+                        mat.at(i).at(j + 1) = mat.at(i).at(j);
+                        mat.at(i).at(j) = nullptr;
+                    }
+                    break;
+                case Action::DOWN:
+                    // Handle DOWN
+                    if (isValid(i + 1, j)) {
+                        mat.at(i + 1).at(j) = mat.at(i).at(j);
+                        mat.at(i).at(j) = nullptr;
+                    }
+                    break;
+                case Action::STAY:
+                    // Handle STAY
+                    break;
+                case Action::KILL:
+                    // Handle STAY
+                    break;
+                default:
+                    // Handle default case
+                    break;
+            }
+        }
 
         void update(){
             for(int i=0; i < mat.size(); i++){
                 for(int j=0; j < mat.at(0).size(); j++){
                     if(mat.at(i).at(j) == nullptr){continue;}
-                    switch (mat.at(i).at(j)->randomMove()) {
-                        case 1:
-                            // Handle UP
-                            if (isValid(i - 1, j)) {
-                                mat.at(i - 1).at(j) = mat.at(i).at(j);
-                                mat.at(i).at(j) = nullptr;
-                            }
-                            break;
-                        case 2:
-                            // Handle LEFT
-                            if (isValid(i, j - 1)) {
-                                mat.at(i).at(j - 1) = mat.at(i).at(j);
-                                mat.at(i).at(j) = nullptr;
-                            }
-                            break;
-                        case 3:
-                            // Handle RIGHT
-                            if (isValid(i, j + 1)) {
-                                mat.at(i).at(j + 1) = mat.at(i).at(j);
-                                mat.at(i).at(j) = nullptr;
-                            }
-                            break;
-                        case 4:
-                            // Handle DOWN
-                            if (isValid(i + 1, j)) {
-                                mat.at(i + 1).at(j) = mat.at(i).at(j);
-                                mat.at(i).at(j) = nullptr;
-                            }
-                            break;
-                        case 5:
-                            // Handle STAY
-                            break;
-                        default:
-                            // Handle default case
-                            break;
-                    }
-
+                    handleAction(i, j, mat.at(i).at(j)->randomAction());
                 }
             }
         }
@@ -199,6 +204,7 @@ class table{
 
             while (chrono::high_resolution_clock::now() < end_time) {
                 clearScreen();
+                printInfo();
                 print();
                 this_thread::sleep_for(chrono::milliseconds(stepTime)); // Adjust sleep duration as needed
                 // randomize();
