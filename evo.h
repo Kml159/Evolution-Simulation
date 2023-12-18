@@ -8,11 +8,41 @@ using namespace std;
 #define maxNeuron 4
 #define genomeLength 100
 
+enum class NeuronTypes{
+
+    // INPUT 
+    LEFT_EYE,
+    RIGHT_EYE,
+    TOP_EYE,
+    BOTTOM_EYE,
+
+    // MUSCLE
+    GO_LEFT,
+    GO_RIGHT,
+    GO_UP,
+    GO_DOWN,
+
+    // INNER
+    INNER,
+
+    // OTHER ACTIONS
+    KILL
+
+};
+
+/*
+    100001
+    ^input-muscle or inner neuron
+     ^
+*/
+
 struct neuron{
     
     vector<pair<neuron*, double>> connections;
     double bias;
     double output;
+
+    string neuronCode;
 
     neuron(){
         bias = getRandomDouble(-1.0, 1.0);
@@ -27,6 +57,50 @@ struct neuron{
         }
     }
 };
+
+// INPUT NEURONS
+struct leftEye: neuron{
+    double output(unsigned int row, unsigned int col, vector<vector<creature*>> &mat) const {
+        // Creature 
+        if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return -1.0;}   // If there is a wall
+        if(mat.at(row).at(col-1) != nullptr){return 1.0;}                                        // If there is a creature
+        else{return 0.0;}
+    }
+};
+
+struct rightEye: neuron{
+    double output(unsigned int row, unsigned int col, vector<vector<creature*>> &mat) const {
+        // Creature 
+        if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return -1.0;}   // If there is a wall
+        if(mat.at(row).at(col+1) != nullptr){return 1.0;}                                        // If there is a creature
+        else{return 0.0;}
+    }
+};
+
+struct topEye: neuron{
+    double output(unsigned int row, unsigned int col, vector<vector<creature*>> &mat) const {
+        // Creature 
+        if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return -1.0;}   // If there is a wall
+        if(mat.at(row+1).at(col) != nullptr){return 1.0;}                                        // If there is a creature
+        else{return 0.0;}
+    }
+};
+
+struct bottomEye: neuron{
+    double output(unsigned int row, unsigned int col, vector<vector<creature*>> &mat) const {
+        // Creature 
+        if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return -1.0;}   // If there is a wall
+        if(mat.at(row-1).at(col) != nullptr){return 1.0;}                                        // If there is a creature
+        else{return 0.0;}
+    }
+};
+
+// INNER NEURONS
+struct inner: neuron{
+
+};
+
+
 
 struct NN{
 

@@ -65,3 +65,6 @@ double getRandomDouble(double lowerBound, double upperBound) {
     return randomDouble;
 }
 
+double relu(double x) {
+    return std::max(0.0, x);
+}
