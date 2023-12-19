@@ -25,7 +25,7 @@ enum class NeuronTypes{
     // INNER
     INNER,
 
-    // OTHER ACTIONS
+    // LAST TYPE!
     KILL
 
 };
@@ -42,7 +42,7 @@ struct neuron{
     double bias;
     double output;
 
-    string neuronCode;
+    char genome[genomeLength];
 
     neuron(){
         bias = getRandomDouble(-1.0, 1.0);
@@ -59,36 +59,36 @@ struct neuron{
 };
 
 // INPUT NEURONS
+template <typename T>
 struct leftEye: neuron{
-    double output(unsigned int row, unsigned int col, vector<vector<creature*>> &mat) const {
-        // Creature 
+    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat) const {
         if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return -1.0;}   // If there is a wall
         if(mat.at(row).at(col-1) != nullptr){return 1.0;}                                        // If there is a creature
         else{return 0.0;}
     }
 };
 
+template <typename T>
 struct rightEye: neuron{
-    double output(unsigned int row, unsigned int col, vector<vector<creature*>> &mat) const {
-        // Creature 
+    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat) const {
         if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return -1.0;}   // If there is a wall
         if(mat.at(row).at(col+1) != nullptr){return 1.0;}                                        // If there is a creature
         else{return 0.0;}
     }
 };
 
+template <typename T>
 struct topEye: neuron{
-    double output(unsigned int row, unsigned int col, vector<vector<creature*>> &mat) const {
-        // Creature 
+    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat) const {
         if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return -1.0;}   // If there is a wall
         if(mat.at(row+1).at(col) != nullptr){return 1.0;}                                        // If there is a creature
         else{return 0.0;}
     }
 };
 
+template <typename T>
 struct bottomEye: neuron{
-    double output(unsigned int row, unsigned int col, vector<vector<creature*>> &mat) const {
-        // Creature 
+    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat) const {
         if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return -1.0;}   // If there is a wall
         if(mat.at(row-1).at(col) != nullptr){return 1.0;}                                        // If there is a creature
         else{return 0.0;}
@@ -100,11 +100,45 @@ struct inner: neuron{
 
 };
 
+static const int ID_SIZE = 7; // Adjust size as needed
+static const int WEIGHT_SIZE = 32; // Adjust size as needed
+static const int DNA_SIZE = (1+ID_SIZE)*2 + WEIGHT_SIZE;
 
+struct genome{
+
+    /*
+        SourceID:       1~0000000 // First bit: isInner, Rest: Which neuron
+        DestinationID:  1~0000000 // First bit: isInner, Rest: Which neuron
+
+        Genome:
+        0-0011111-0-0000110-01111011010101110100010111000110
+    */
+
+    bool DNA[DNA_SIZE];
+
+    genome(){
+        // Initialize DNA randomly
+        for(int i=0; i < DNA_SIZE; DNA[i++] = rand()%2);
+    }
+
+    pair<bool, unsigned int> getSource(){
+        return make_pair(DNA[0], boolArrayToUnsigned(&DNA[1], ID_SIZE));
+    }
+
+    pair<bool, unsigned int> getDestination(){
+        return make_pair(DNA[1+ID_SIZE], boolArrayToUnsigned(&DNA[2+ID_SIZE], ID_SIZE));
+    }
+
+    unsigned int getWeight(){
+        return boolArrayToUnsigned(&DNA[2+(ID_SIZE*2)], WEIGHT_SIZE);
+    }
+
+};
 
 struct NN{
 
     vector<neuron*> neurons;
+    char genome[genomeLength];
 
     NN(){
 
@@ -118,7 +152,6 @@ struct NN{
 struct creature{
 
     pair<int, int> coord;
-    bool genome[genomeLength];
     NN brain;
     char symbol;
     string color;

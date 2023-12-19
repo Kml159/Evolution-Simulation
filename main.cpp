@@ -24,12 +24,6 @@ struct dummy{
 };
 
 template <typename T>
-/*
-Needed properties:
-
-->symbol: char
-->color: string
-*/
 class table{
 
     private:
@@ -216,6 +210,7 @@ class table{
 
 int main(){
 
+    srand(static_cast<unsigned>(time(nullptr)));
     table<creature>A(10, 50, 50);
     A.screen(15);
     

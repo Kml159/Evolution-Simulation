@@ -1,6 +1,7 @@
 #include <ctime>
 #include <random>
 #include <unordered_map>
+#include <utility>
 
 // Define colors
 #define RED_TEXT "\033[31m"
@@ -64,6 +65,17 @@ double getRandomDouble(double lowerBound, double upperBound) {
     double randomDouble = lowerBound + randomFraction * (upperBound - lowerBound);
     return randomDouble;
 }
+
+unsigned int boolArrayToUnsigned(bool* boolArray, int size) {
+    unsigned int result = 0;
+    for (int i = size - 1; i >= 0; --i) {
+        if (boolArray[i]) {
+            result += static_cast<unsigned int>(pow(2, size - 1 - i));
+        }
+    }
+    return result;
+}
+
 
 double relu(double x) {
     return std::max(0.0, x);
