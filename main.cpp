@@ -126,6 +126,8 @@ class table{
             }
         }
 
+
+
         bool isValid(int row, int col) {
             if (row < 0 || row >= mat.size() || col < 0 || col >= mat.at(0).size()) {
                 return false; // index out of range

@@ -5,7 +5,7 @@
 using namespace std;
 
 #define maxConnection 16
-#define maxNeuron 4
+#define maxInnerNeuron 2
 #define genomeLength 100
 
 enum class NeuronTypes{
@@ -22,13 +22,14 @@ enum class NeuronTypes{
     GO_UP,
     GO_DOWN,
 
-    // INNER
-    INNER,
-
     // LAST TYPE!
-    KILL
+    KILL // This should be last neuron always
 
 };
+
+const static unsigned int NumberOfNeuronTypes = (int)(NeuronTypes::KILL)+1;
+
+// INNER NEURON
 
 /*
     100001
@@ -95,14 +96,53 @@ struct bottomEye: neuron{
     }
 };
 
+// MUSCLE NEURONS
+template <typename T>
+struct goLeft: neuron{
+    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+        
+    }
+};
+
+template <typename T>
+struct goRight: neuron{
+    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+        
+    }
+};
+
+template <typename T>
+struct goUp: neuron{
+    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+        
+    }
+};
+
+template <typename T>
+struct goDown: neuron{
+    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+        
+    }
+};
+
+template <typename T>
+struct kill: neuron{
+    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+        
+    }
+};
+
 // INNER NEURONS
 struct inner: neuron{
 
 };
 
-static const int ID_SIZE = 7; // Adjust size as needed
-static const int WEIGHT_SIZE = 32; // Adjust size as needed
+static const int ID_SIZE = 7;           // Adjust size as needed
+static const int WEIGHT_SIZE = 32;      // Adjust size as needed
 static const int DNA_SIZE = (1+ID_SIZE)*2 + WEIGHT_SIZE;
+
+static const double CROSS_OVER_RATIO = 0.2;
+static const double MUTATION_RATIO = 0.1;
 
 struct genome{
 
@@ -133,15 +173,104 @@ struct genome{
         return boolArrayToUnsigned(&DNA[2+(ID_SIZE*2)], WEIGHT_SIZE);
     }
 
+    void crossOver(genome& A){
+        for(int i=0; i < CROSS_OVER_RATIO*DNA_SIZE; i++){
+            int index = getRandom(0, DNA_SIZE);
+            swap(DNA[index], A.DNA[index]);
+        }
+    }
+
+    void mutation(){
+        for(int i=0; i < CROSS_OVER_RATIO*DNA_SIZE; i++){
+            int index = getRandom(0, DNA_SIZE);
+            DNA[index] = !DNA[index];
+        }
+    }
+
 };
 
 struct NN{
 
-    vector<neuron*> neurons;
-    char genome[genomeLength];
+    neuron* neurons[NumberOfNeuronTypes+maxInnerNeuron];    // All types of neurons and X number of inner neuron already initialized
+    genome DNA[maxConnection];
 
     NN(){
+        // Initialize Neurons
+        for(int i=0; i < NumberOfNeuronTypes; i++){
+            // create all neurons using createNonInnerNeuron()
+        }
+    }
 
+    neuron* createNonInnerNeuron(NeuronTypes type) {
+        switch (type) {
+            case NeuronTypes::LEFT_EYE:
+                return new leftEye<creature>();
+            case NeuronTypes::RIGHT_EYE:
+                return new rightEye<creature>();
+            case NeuronTypes::TOP_EYE:
+                return new topEye<creature>();
+            case NeuronTypes::BOTTOM_EYE:
+                return new bottomEye<creature>();
+            case NeuronTypes::GO_LEFT:
+                return new goLeft<creature>(); // Add more cases for other neuron types
+            case NeuronTypes::GO_RIGHT:
+                return new goRight<creature>();
+            case NeuronTypes::GO_UP:
+                return new goUp<creature>();
+            case NeuronTypes::GO_DOWN:
+                return new goDown<creature>();
+            case NeuronTypes::KILL:
+                return new kill<creature>();
+            // Add more cases for other neuron types
+            default:
+                throw invalid_argument("Neuron type is unknown!");
+        }
+    }
+
+
+    void initNeurons(){
+        // Connect neurons based on DNA
+        for(int i=0; i < maxConnection; i++){
+            auto SOURCE = DNA[i].getSource();
+            auto DESTINATION = DNA[i].getDestination();
+
+            if(SOURCE.first == true){
+                NeuronTypes type = static_cast<NeuronTypes>(SOURCE.second%NumberOfNeuronTypes);
+                // Input Neuron
+                switch (type){
+                    case NeuronTypes::LEFT_EYE:
+                        // code
+                        break;
+                    case NeuronTypes::RIGHT_EYE:
+                        // code
+                        break;
+                    case NeuronTypes::TOP_EYE:
+                        // code
+                        break;
+                    case NeuronTypes::BOTTOM_EYE:
+                        // code
+                        break;
+                    case NeuronTypes::GO_LEFT:
+                        // code
+                        break;
+                    case NeuronTypes::GO_RIGHT:
+                        // code
+                        break;
+                    case NeuronTypes::GO_UP:
+                        break;
+                    case NeuronTypes::GO_DOWN:
+                        break;
+                    case NeuronTypes::KILL:
+                        break;
+                    default:
+                        throw invalid_argument("Source neuron type is incorrect!");
+                        break;
+                    }
+            }
+            else{
+                // Create INNER NEURON
+            }
+        }
     }
 
     ~NN(){
