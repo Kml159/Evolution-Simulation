@@ -1,6 +1,6 @@
 #include <vector>
 #include <unordered_map>
-#include "func.h"
+#include "static.h"
 
 using namespace std;
 
@@ -133,6 +133,7 @@ struct kill: neuron{
 };
 
 // INNER NEURONS
+template <typename T>
 struct inner: neuron{
 
 };
@@ -195,9 +196,15 @@ struct NN{
     genome DNA[maxConnection];
 
     NN(){
-        // Initialize Neurons
-        for(int i=0; i < NumberOfNeuronTypes; i++){
-            // create all neurons using createNonInnerNeuron()
+        // Genome is initialized randomly by its constructor
+        // Initialize non-inner Neurons
+        int index=0;
+        for(; index < NumberOfNeuronTypes; index++){
+            neurons[index] = createNonInnerNeuron(static_cast<NeuronTypes>(index));
+        }
+        // Create inner neurons
+        for(; index < NumberOfNeuronTypes+maxInnerNeuron; index++){
+            neurons[index] = new inner<creature>();
         }
     }
 
@@ -227,6 +234,17 @@ struct NN{
         }
     }
 
+    void decodeGenome(genome& A){
+        // Decode Genome
+        auto Source = A.getSource();
+        auto Destination = A.getDestination();
+        auto Weight = A.getWeight();
+        // Source.Output * Source.Weight -> Destination.Input
+        /*
+            Bias + (I_1, I_2, ..., I_n) -> Output
+             
+        */
+    }
 
     void initNeurons(){
         // Connect neurons based on DNA
@@ -267,14 +285,15 @@ struct NN{
                         break;
                     }
             }
-            else{
+            else if(SOURCE.first == false){
                 // Create INNER NEURON
+
             }
         }
     }
 
     ~NN(){
-        for(int i=0; i < neurons.size(); delete neurons[i++]);
+        for(int i=0; i < NumberOfNeuronTypes+maxInnerNeuron; delete neurons[i++]);
     }
 };
 

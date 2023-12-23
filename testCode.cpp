@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <iomanip> 
 #include <algorithm> 
-#include "evo.h"
+#include "creature.h"
 
 using namespace std;
 
