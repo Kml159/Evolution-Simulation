@@ -36,13 +36,12 @@ const static unsigned int NumberOfNeuronTypes = (int)(NeuronTypes::KILL)+1;
     ^input-muscle or inner neuron
      ^
 */
-
 struct neuron{
     
     vector<pair<neuron*, double>> connections;
+    // const static vector<vector<T*>> *mat;
     double bias;
     double output;
-
     char genome[genomeLength];
 
     neuron(){
@@ -57,6 +56,23 @@ struct neuron{
             throw invalid_argument("Too much neuron");
         }
     }
+
+    void input(){
+
+    }
+
+    template <typename T>
+    bool isOutOfBounds(int row, int col, vector<vector<T*>> &mat){
+        if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return true;}
+        return false; 
+    }
+
+    template <typename T>
+    bool isOccupied(int row, int col, vector<vector<T*>> &mat){
+        if(mat.at(row).at(col) != nullptr){return true;}
+        return false;
+    }
+
 };
 
 // INPUT NEURONS
@@ -101,6 +117,19 @@ template <typename T>
 struct goLeft: neuron{
     double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
         
+    }
+
+    void unconditionallyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+        // If indices are out of bounds do nothing
+        if(isOutOfBounds(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
+        // If there is another creature do nothing
+        else if(isOccupied(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
+        // Go left
+        swap(mat.at(row).at(col), mat.at(row).at(col-1));
+    }
+
+    void conditionallyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+        if(output(row, col, mat) > 0){unconditionallyDo(row, col, mat);}
     }
 };
 
@@ -244,6 +273,8 @@ struct NN{
             Bias + (I_1, I_2, ..., I_n) -> Output
              
         */
+
+        // DO SOMETHING
     }
 
     void initNeurons(){
