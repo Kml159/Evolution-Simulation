@@ -36,58 +36,95 @@ const static unsigned int NumberOfNeuronTypes = (int)(NeuronTypes::KILL)+1;
     ^input-muscle or inner neuron
      ^
 */
+
+struct activationFunctions {
+    // Activation functions are used to determine the output of a neuron
+    static double sigmoid(double x) {
+        return 1.0 / (1.0 + exp(-x));
+    }
+
+    static double relu(double x) {
+        return max(0.0, x);
+    }
+};
+
+template <typename T>
 struct neuron{
-    
-    vector<pair<neuron*, double>> connections;
+    // Neurons are the building blocks of neural networks
     // const static vector<vector<T*>> *mat;
     double bias;
+    double accumulation;
     double output;
     char genome[genomeLength];
 
+    pair<int, int> *coord;      // Pointer to the coordinates of the creature
+    vector<vector<T*>> *mat;    // Pointer to the matrix
+
     neuron(){
+        // Initialize bias randomly
         bias = getRandomDouble(-1.0, 1.0);
+        accumulation = 0.0;
     }
 
-    void link(neuron* linked){
-        if(connections.size() < maxConnection){
-            connections.push_back(make_pair(linked, getRandomDouble(-3.0, 3.0)));
-        }
-        else {
-            throw invalid_argument("Too much neuron");
-        }
-    }
-
-    void input(){
-
-    }
-
+    /*
     template <typename T>
-    bool isOutOfBounds(int row, int col, vector<vector<T*>> &mat){
-        if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return true;}
+    void unconditionallyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat);
+
+    !????????!?!?!?!?!?!?!? 
+    */
+
+    void setPTR(const pair<int, int> &coord, const vector<vector<T*>> &mat){
+        this->coord = &coord;
+        this->mat = &mat;
+    }
+
+    void accumulateInput(const double input){ 
+        // input = output of source neuron * weight
+        accumulation += input;
+    }
+
+    void calculateOutput(){
+        // Calculate output by applying activation function to accumulation
+        // output = activationFunctions::relu(bias + (W_1 * A_1 + W_2 * A_2 + W_3 * A_3 + ... + W_n * A_n));
+        accumulation += bias;
+        output = activationFunctions::relu(accumulation);
+    }
+
+    bool isOutOfBounds(int row, int col){
+        // If indices are out of bounds do nothing
+        if(row > mat->size()-1 || row < 0 || col > mat->at(0).size()-1 || col < 0){return true;}
         return false; 
     }
 
     template <typename T>
-    bool isOccupied(int row, int col, vector<vector<T*>> &mat){
-        if(mat.at(row).at(col) != nullptr){return true;}
+    bool isOccupied(int row, int col){
+        // If given indices are occupied by another creature do nothing
+        if(mat->at(row).at(col) != nullptr){return true;}
         return false;
     }
 
+    double getOutput() const {return output;}
+
 };
 
-// INPUT NEURONS
+// NON-INNER NEURONS
+
+// INPUT NEURONS 
 template <typename T>
-struct leftEye: neuron{
-    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat) const {
-        if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return -1.0;}   // If there is a wall
-        if(mat.at(row).at(col-1) != nullptr){return 1.0;}                                        // If there is a creature
+struct leftEye: neuron{         // CORRECTED
+    double output() const {
+        // If there is a creature left of the current creature return 1.0, else return 0.0
+        if(coord->first > mat->size()-1 || coord->first < 0 || coord->second > mat->at(0).size()-1 || coord->second < 0){return -1.0;}   // If there is a wall
+        if(mat->at(row).at(col-1) != nullptr){return 1.0;}                                        // If there is a creature
         else{return 0.0;}
     }
 };
 
+// REST NEURON OUTPUTS FUNCTIONS ARE FALSE !!!!!!!!!!!
 template <typename T>
 struct rightEye: neuron{
-    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat) const {
+    double output(unsigned int row, unsigned int col, const vector<vector<T*>> &mat) const {
+        // If there is a creature right of the current creature return 1.0, else return 0.0
         if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return -1.0;}   // If there is a wall
         if(mat.at(row).at(col+1) != nullptr){return 1.0;}                                        // If there is a creature
         else{return 0.0;}
@@ -96,7 +133,8 @@ struct rightEye: neuron{
 
 template <typename T>
 struct topEye: neuron{
-    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat) const {
+    double output(unsigned int row, unsigned int col, const vector<vector<T*>> &mat) const {
+        // If there is a creature above the current creature return 1.0, else return 0.0
         if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return -1.0;}   // If there is a wall
         if(mat.at(row+1).at(col) != nullptr){return 1.0;}                                        // If there is a creature
         else{return 0.0;}
@@ -105,59 +143,91 @@ struct topEye: neuron{
 
 template <typename T>
 struct bottomEye: neuron{
-    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat) const {
+    double output(unsigned int row, unsigned int col, const vector<vector<T*>> &mat) const {
+        // If there is a creature below the current creature return 1.0, else return 0.0
         if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return -1.0;}   // If there is a wall
         if(mat.at(row-1).at(col) != nullptr){return 1.0;}                                        // If there is a creature
         else{return 0.0;}
     }
 };
 
-// MUSCLE NEURONS
+// MUSCLE NEURONS 
 template <typename T>
 struct goLeft: neuron{
-    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
-        
-    }
 
     void unconditionallyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
         // If indices are out of bounds do nothing
         if(isOutOfBounds(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
         // If there is another creature do nothing
         else if(isOccupied(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
-        // Go left
+        // By swapping the creatures we are moving the current creature to the left
         swap(mat.at(row).at(col), mat.at(row).at(col-1));
     }
 
     void conditionallyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+        // If output is positive do the action
         if(output(row, col, mat) > 0){unconditionallyDo(row, col, mat);}
     }
 };
 
 template <typename T>
 struct goRight: neuron{
-    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
-        
+    
+    void unconditionalyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+        // If indices are out of bounds do nothing
+        if(isOutOfBounds(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
+        // If there is another creature do nothing
+        else if(isOccupied(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
+        // By swapping the creatures we are moving the current creature to the right
+        swap(mat.at(row).at(col), mat.at(row).at(col+1));
+    }
+
+    void conditionallyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+        // If output is positive do the action
+        if(output(row, col, mat) > 0){unconditionallyDo(row, col, mat);}
     }
 };
 
 template <typename T>
 struct goUp: neuron{
-    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
-        
+    
+    void unconditionalyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+        // If indices are out of bounds do nothing
+        if(isOutOfBounds(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
+        // If there is another creature do nothing
+        else if(isOccupied(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
+        // By swapping the creatures we are moving the current creature to the top
+        swap(mat.at(row).at(col), mat.at(row+1).at(col));
+    }
+
+    void conditionallyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+        // If output is positive do the action
+        if(output(row, col, mat) > 0){unconditionallyDo(row, col, mat);}
     }
 };
 
 template <typename T>
 struct goDown: neuron{
-    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
-        
+    
+    void unconditionalyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+        // If indices are out of bounds do nothing
+        if(isOutOfBounds(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
+        // If there is another creature do nothing
+        else if(isOccupied(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
+        // By swapping the creatures we are moving the current creature to the bottom
+        swap(mat.at(row).at(col), mat.at(row-1).at(col));
+    }
+
+    void conditionallyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+        // If output is positive do the action
+        if(output(row, col, mat) > 0){unconditionallyDo(row, col, mat);}
     }
 };
 
 template <typename T>
 struct kill: neuron{
     double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
-        
+        // Implement this !!!!!!!!!!!!
     }
 };
 
@@ -167,8 +237,8 @@ struct inner: neuron{
 
 };
 
-static const int ID_SIZE = 7;           // Adjust size as needed
-static const int WEIGHT_SIZE = 32;      // Adjust size as needed
+static const int ID_SIZE = 7;          
+static const int WEIGHT_SIZE = 32;     
 static const int DNA_SIZE = (1+ID_SIZE)*2 + WEIGHT_SIZE;
 
 static const double CROSS_OVER_RATIO = 0.2;
@@ -177,11 +247,13 @@ static const double MUTATION_RATIO = 0.1;
 struct genome{
 
     /*
-        SourceID:       1~0000000 // First bit: isInner, Rest: Which neuron
-        DestinationID:  1~0000000 // First bit: isInner, Rest: Which neuron
+        SourceID:       1~0000000 // First bit: isInner, Rest: Which source neuron is this?
+        DestinationID:  1~0000000 // First bit: isInner, Rest: Which destination neuron is this?
 
         Genome:
         0-0011111-0-0000110-01111011010101110100010111000110
+        ^SourceID ^DestID   ^Weight
+
     */
 
     bool DNA[DNA_SIZE];
@@ -200,10 +272,12 @@ struct genome{
     }
 
     unsigned int getWeight(){
+        // Weight is 32 bits, so we need to convert it to unsigned int
         return boolArrayToUnsigned(&DNA[2+(ID_SIZE*2)], WEIGHT_SIZE);
     }
 
     void crossOver(genome& A){
+        // Swap random bits between two genomes
         for(int i=0; i < CROSS_OVER_RATIO*DNA_SIZE; i++){
             int index = getRandom(0, DNA_SIZE);
             swap(DNA[index], A.DNA[index]);
@@ -211,29 +285,67 @@ struct genome{
     }
 
     void mutation(){
+        // Flip random bits
         for(int i=0; i < CROSS_OVER_RATIO*DNA_SIZE; i++){
-            int index = getRandom(0, DNA_SIZE);
+            int index = getRandom(0, DNA_SIZE); // Get random index
             DNA[index] = !DNA[index];
         }
     }
 
 };
 
+template <typename T>
 struct NN{
 
-    neuron* neurons[NumberOfNeuronTypes+maxInnerNeuron];    // All types of neurons and X number of inner neuron already initialized
+    neuron* nonInnerNeurons[NumberOfNeuronTypes];    // All types of neurons and X number of inner neuron already initialized
+    neuron* innerNeurons[maxInnerNeuron];            // Inner neurons are created dynamically
     genome DNA[maxConnection];
 
+    pair<int, int> *coord;      // Pointer to the coordinates of the creature
+    vector<vector<T*>> *mat;    // Pointer to the matrix
+    /*
+        nonInnerNeurons:    0~3: Input Neurons
+                            4~7: Muscle Neurons
+                            8: Kill Neuron
+
+        innerNeurons:       0~X: Inner Neurons
+
+    */
+
     NN(){
-        // Genome is initialized randomly by its constructor
-        // Initialize non-inner Neurons
-        int index=0;
-        for(; index < NumberOfNeuronTypes; index++){
-            neurons[index] = createNonInnerNeuron(static_cast<NeuronTypes>(index));
+        // Initialize nonInnerNeurons
+        for(int i=0; i < NumberOfNeuronTypes; i++){
+            nonInnerNeurons[i] = createNonInnerNeuron(static_cast<NeuronTypes>(i));
         }
-        // Create inner neurons
-        for(; index < NumberOfNeuronTypes+maxInnerNeuron; index++){
-            neurons[index] = new inner<creature>();
+        // Initialize innerNeurons
+        for(int i=0; i < maxInnerNeuron; i++){
+            innerNeurons[i] = new inner<creature>();
+        }
+
+        // Set pointers of neurons
+        for(int i=0; i < NumberOfNeuronTypes; i++){
+            nonInnerNeurons[i]->setPTR(*coord, *mat);
+        }
+
+        for(int i=0; i < maxInnerNeuron; i++){
+            innerNeurons[i]->setPTR(*coord, *mat);
+        }
+    }
+
+    void setPTR(const pair<int, int> &coord, const vector<vector<T*>> &mat){
+        this->coord = &coord;
+        this->mat = &mat;
+    }
+
+    void action(){
+        // Decode genomes and send inputs to neurons
+        decodeGenomesAndSendInputs();
+        // Do actions based on output of neurons
+        for(int i=0; i < NumberOfNeuronTypes; i++){
+            nonInnerNeurons[i]->conditionallyDo();
+        }
+        for(int i=0; i < maxInnerNeuron; i++){
+            innerNeurons[i]->conditionallyDo();
         }
     }
 
@@ -263,18 +375,65 @@ struct NN{
         }
     }
 
-    void decodeGenome(genome& A){
-        // Decode Genome
-        auto Source = A.getSource();
-        auto Destination = A.getDestination();
-        auto Weight = A.getWeight();
-        // Source.Output * Source.Weight -> Destination.Input
+    void decodeGenomesAndSendInputs(){
+
         /*
-            Bias + (I_1, I_2, ..., I_n) -> Output
-             
+            Genome: 0-0011111-0-0000110-01111011010101110100010111000110
+                    ^SourceID ^DestID   ^Weight
+
+            Decode each genome and send the output to the destination neuron
         */
 
-        // DO SOMETHING
+        // Decode all nonInnerNeurons
+        for(int i=0; i < NumberOfNeuronTypes; i++){
+
+            auto SOURCE = DNA[i].getSource();
+            auto DESTINATION = DNA[i].getDestination();
+            double weight = DNA[i].getWeight();
+
+            neuron* SOURCE_NEURON;
+            neuron* DESTINATION_NEURON;
+
+                    // Decode SOURCE
+
+            // Inner Neuron
+            if(SOURCE.first == true){   
+                unsigned int sourceID = SOURCE.second % maxInnerNeuron;
+                SOURCE_NEURON = innerNeurons[sourceID];
+            }
+
+            // Non-Inner Neuron
+            else if(SOURCE.first == false){
+                unsigned int sourceID = SOURCE.second % NumberOfNeuronTypes;
+                SOURCE_NEURON = nonInnerNeurons[sourceID];
+            }
+
+                    // Decode DESTINATION
+            
+            // Inner Neuron
+            if(DESTINATION.first == true){
+                unsigned int destinationID = DESTINATION.second % maxInnerNeuron;
+                DESTINATION_NEURON = innerNeurons[destinationID];
+            }
+
+            // Non-Inner Neuron
+            else if(DESTINATION.first == false){
+                unsigned int destinationID = DESTINATION.second % NumberOfNeuronTypes;
+                DESTINATION_NEURON = nonInnerNeurons[destinationID];
+            }
+
+            // Send output to destination neuron
+            DESTINATION_NEURON->accumulateInput(SOURCE_NEURON->getOutput() * weight);    
+        }
+
+        // Finally calculate output of all neurons
+        for(int i=0; i < NumberOfNeuronTypes; i++){
+            nonInnerNeurons[i]->calculateOutput();
+        }
+        for(int i=0; i < maxInnerNeuron; i++){
+            innerNeurons[i]->calculateOutput();
+        }
+
     }
 
     void initNeurons(){
@@ -324,27 +483,42 @@ struct NN{
     }
 
     ~NN(){
-        for(int i=0; i < NumberOfNeuronTypes+maxInnerNeuron; delete neurons[i++]);
+        // Delete all dynamically allocated neurons
+        for(int i=0; i < NumberOfNeuronTypes+maxInnerNeuron; delete nonInnerNeurons[i++]);
+        for(int i=0; i < maxInnerNeuron; delete innerNeurons[i++]);
     }
 };
 
+template <typename T>
 struct creature{
 
-    pair<int, int> coord;
     NN brain;
-    char symbol;
+    static const char symbol = 'o';
     string color;
 
-    creature(){
-        symbol = 'o'; // getRandom(1, 16) + '0';
+    pair<int, int> coord;
+    vector<vector<T*>> *mat;    // Pointer to the matrix
+
+    creature(vector<vector<T*>> &mat){
+        this->mat = &mat;
+
+        // Initialize random color
         random_device rd;
         mt19937 gen(rd());
         uniform_int_distribution<> distribution(0, colorMap.size() - 1);
         color = next(begin(colorMap), distribution(gen))->second;
+
+        // Initialize random coordinates
+        coord.first = getRandom(0, maxRow-1);
+        coord.second = getRandom(0, maxCol-1);
+
+        brain.setCoordiantes(coord);
+
+        // Set pointer of brain
+        brain.setPTR(coord, *mat);
     }
 
     void randomize(){
-        symbol = (getRandom(0, 5)) + 'a';
         random_device rd;
         mt19937 gen(rd());
         uniform_int_distribution<> distribution(0, colorMap.size() - 1);
