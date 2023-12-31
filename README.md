@@ -38,9 +38,6 @@ Input Neuron: The input neuron is the neuron that receives the input from the wo
 
 Output Neuron: The output neuron is the neuron that sends the output to the world and takes any action like moving the creature. The output neuron is connected to the creature.
 
-## Creatures
-The creatures are the agents of the simulation. The creatures are controlled by the neural network. The creatures are placed in the world. The creatures will live or die based on world conditions. 
-
 ## Population
 The population will be randomly generated. Every individual in the population will also be randomly generated. 
 
@@ -50,9 +47,6 @@ The population will be randomly generated. Every individual in the population wi
 
 ## Evolution
 The creatures will be placed in the world. The creatures will be given a DNA. The DNA will be used to create the neural network. The neural network will be used to control the creature. The creature will live or die based on world conditions. The creatures who live will earn to reproduce. The creatures who die will not be able to reproduce. Also the creatures who live will pass on their DNA to the next generation. The DNA will be mutated and crossed over to create a new generation of creatures. 
-
-## Table
-It is 2D world simulation matrix which holds the creatures and sake of visaul representation of the world.
 
 ## Simulation
 ...
