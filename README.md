@@ -15,7 +15,7 @@ The neural network is a feed forward neural network. By using weights and biases
 ## Genome
 The genome is the DNA of the creature. It contains the information of connection weights and IDs of the source and destination neurons. The genome is used to create the neural network. The genome will be mutated to create a new generation of creatures. 
 
-0-0011111-0-0000110-01111011010101110100010111000110
+0-0011111-0-0000110-01111011010101110100010111000110  
 ^SourceID ^DestID   ^Weight
 
 ### DNA
