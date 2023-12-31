@@ -10,8 +10,7 @@ using namespace std;
 
 int main(){
 
-    srand(static_cast<unsigned>(time(nullptr)));
+    creature A;
 
-    cout << (int)(NeuronTypes::KILL) << endl;
-    
+    A.printDNA();
 }

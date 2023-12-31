@@ -2,6 +2,14 @@
 #include <random>
 #include <unordered_map>
 #include <utility>
+#include <typeinfo>
+#include <vector>
+#include <unordered_map>
+#include <chrono>
+#include <thread>
+#include <cstdlib>
+#include <iomanip> 
+#include <algorithm> 
 
 // Define colors
 #define RED_TEXT "\033[31m"
@@ -66,7 +74,7 @@ double getRandomDouble(double lowerBound, double upperBound) {
     return randomDouble;
 }
 
-unsigned int boolArrayToUnsigned(bool* boolArray, int size) {
+unsigned int boolArrayToUnsigned(const bool* boolArray, int size) {
     unsigned int result = 0;
     for (int i = size - 1; i >= 0; --i) {
         if (boolArray[i]) {
@@ -76,7 +84,13 @@ unsigned int boolArrayToUnsigned(bool* boolArray, int size) {
     return result;
 }
 
+struct activationFunctions {
+    // Activation functions are used to determine the output of a neuron
+    static double sigmoid(double x) {
+        return 1.0 / (1.0 + exp(-x));
+    }
 
-double relu(double x) {
-    return std::max(0.0, x);
-}
+    static double relu(double x) {
+        return max(0.0, x);
+    }
+};

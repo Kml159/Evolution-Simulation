@@ -1,228 +1,8 @@
-#include <vector>
-#include <unordered_map>
-#include "static.h"
+#include <iostream>
+
+#include "neuron.h"
 
 using namespace std;
-
-// Forward declaration
-#define maxConnection 16
-#define maxInnerNeuron 2
-#define genomeLength 100
-
-// Declaretions for reproduce function
-#define CROSS_OVER_RATIO 0.2
-#define MUTATION_RATIO 0.1
-
-// Declaretions 
-struct creature;
-struct NN;
-struct neuron;
-
-// Declaretions for matrix 
-vector<vector<creature*>>* creatureTable = nullptr;
-
-enum class NeuronTypes{
-
-    // INPUT 
-    LEFT_EYE,
-    RIGHT_EYE,
-    TOP_EYE,
-    BOTTOM_EYE,
-
-    // MUSCLE
-    GO_LEFT,
-    GO_RIGHT,
-    GO_UP,
-    GO_DOWN,
-
-    // LAST TYPE!
-    KILL // This should be last neuron always
-
-};
-
-const static unsigned int NumberOfNeuronTypes = (int)(NeuronTypes::KILL)+1;
-
-// INNER NEURON
-struct activationFunctions {
-    // Activation functions are used to determine the output of a neuron
-    static double sigmoid(double x) {
-        return 1.0 / (1.0 + exp(-x));
-    }
-
-    static double relu(double x) {
-        return max(0.0, x);
-    }
-};
-
-struct neuron{
-    // Neurons are the building blocks of neural networks
-    // const static vector<vector<T*>> *s;
-    double bias;
-    double accumulation;
-    double output;
-    char genome[genomeLength];
-
-    pair<int, int> *coord;              // Pointer to the coordinates of the creature
-
-    neuron(){
-        // Initialize bias randomly
-        bias = getRandomDouble(-1.0, 1.0);
-        accumulation = 0.0;
-    }
-
-    void setPTR(pair<int, int> &coord){
-        this->coord = &coord;
-    }
-    
-    // Pure virtual functions, must be implemented in derived classes
-    virtual void conditionallyDo() = 0;
-    virtual void unconditionallyDo() = 0;
-
-    void accumulateInput(const double input){ 
-        // input = output of source neuron * weight
-        accumulation += input;
-    }
-
-    void calculateOutput(){
-        // Calculate output by applying activation function to accumulation
-        // output = activationFunctions::relu(bias + (W_1 * A_1 + W_2 * A_2 + W_3 * A_3 + ... + W_n * A_n));
-        accumulation += bias;
-        output = activationFunctions::relu(accumulation);
-    }
-
-    bool isOutOfBounds() const {
-        // Check if the current neuron's coordinates are out of bounds
-        if(coord->first > creatureTable->size()-1 || coord->first < 0 || coord->second > creatureTable->at(0).size()-1 || coord->second < 0){return true;}
-        return false; 
-    }
-
-    bool isOccupied(int row, int col) const {
-        // Check if the given coordinates are occupied
-        if(creatureTable->at(row).at(col) != nullptr){return true;}
-        return false;
-    }
-
-    double getOutput() const {return output;}
-
-};
-
-// NON-INNER NEURONS
-
-// INPUT NEURONS 
-struct leftEye: neuron{       
-    double output() const {
-        // If there is a creature left of the current creature return 1.0, else return 0.0
-        if(isOutOfBounds()){return -1.0;}                               // If there is a wall
-        if(isOccupied(coord->first, coord->second-1)){return 1.0;}      // If there is a creature
-        return 0.0;
-    }
-
-    void unconditionallyDo() override {}
-    void conditionallyDo() override {}
-};
-
-struct rightEye: neuron{
-    double output() const {
-        // If there is a creature right of the current creature return 1.0, else return 0.0
-        if(isOutOfBounds()){return -1.0;}                               // If there is a wall
-        if(isOccupied(coord->first, coord->second+1)){return 1.0;}      // If there is a creature
-        return 0.0;
-    }
-
-    void unconditionallyDo() override {}
-    void conditionallyDo() override {}
-};
-
-struct topEye: neuron{
-    double output() const {
-        // If there is a creature above the current creature return 1.0, else return 0.0
-        if(isOutOfBounds()){return -1.0;}                               // If there is a wall
-        if(isOccupied(coord->first+1, coord->second)){return 1.0;}      // If there is a creature
-        return 0.0;
-    }
-
-    void unconditionallyDo() override {}
-    void conditionallyDo() override {}
-};
-
-struct bottomEye: neuron{
-    double output() const {
-        // If there is a creature below the current creature return 1.0, else return 0.0
-        if(isOutOfBounds()){return -1.0;}                               // If there is a wall
-        if(isOccupied(coord->first-1, coord->second)){return 1.0;}      // If there is a creature
-        return 0.0;
-    }
-
-    void unconditionallyDo() override {}
-    void conditionallyDo() override {}
-};
-
-// MUSCLE NEURONS 
-struct goLeft: neuron{
-
-    void unconditionallyDo() override { 
-        if(isOutOfBounds() || isOccupied(coord->first, coord->second-1)){return;}
-        swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(coord->first).at(coord->second-1)); // Swap to the left, so it moves.
-    }
-
-    void conditionallyDo() override {
-        // If output is positive do the action
-        if(output > 0){unconditionallyDo();}
-    }
-};
-
-struct goRight: neuron{
-    
-    void unconditionallyDo() override {
-        if(isOutOfBounds() || isOccupied(coord->first, coord->second+1)){return;}
-        swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(coord->first).at(coord->second+1)); // Swap to the second, so it moves.
-    }
-
-    void conditionallyDo() override {
-        // If output is positive do the action
-        if(output > 0){unconditionallyDo();}
-    }
-};
-
-struct goUp: neuron{
-    
-    void unconditionallyDo() override {
-        if(isOutOfBounds() || isOccupied(coord->first+1, coord->second)){return;}
-        swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(coord->first+1).at(coord->second)); // Swap to the top, so it moves.
-    }
-
-    void conditionallyDo() override {
-        // If output is positive do the action
-        if(output > 0){unconditionallyDo();}
-    }
-};
-
-struct goDown: neuron{
-    
-    void unconditionallyDo() override {
-        if(isOutOfBounds() || isOccupied(coord->first-1, coord->second)){return;}
-        swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(coord->first-1).at(coord->second)); // Swap to the bottom, so it moves.
-    }
-
-    void conditionallyDo() override {
-        // If output is positive do the action
-        if(output > 0){unconditionallyDo();}
-    }
-};
-
-struct kill: neuron{
-    // Kill the creature in moving direction
-    // IMPLEMENT THIS LATER
-    void unconditionallyDo() override {}
-    void conditionallyDo() override {}
-};
-
-// INNER NEURONS
-struct inner: neuron{
-
-    void unconditionallyDo() override {}
-    void conditionallyDo() override {}
-};
 
 static const int ID_SIZE = 7;          
 static const int WEIGHT_SIZE = 32;     
@@ -230,32 +10,30 @@ static const int DNA_SIZE = (1+ID_SIZE)*2 + WEIGHT_SIZE;
 
 struct genome{
 
+    bool DNA[DNA_SIZE];
+
     /*
+        Genome:         0-0011111-0-0000110-01111011010101110100010111000110
+                        ^SourceID ^DestID   ^Weight
+
         SourceID:       1~0000000 // First bit: isInner, Rest: Which source neuron is this?
         DestinationID:  1~0000000 // First bit: isInner, Rest: Which destination neuron is this?
-
-        Genome:
-        0-0011111-0-0000110-01111011010101110100010111000110
-        ^SourceID ^DestID   ^Weight
-
     */
-
-    bool DNA[DNA_SIZE];
 
     genome(){
         // Initialize DNA randomly
         for(int i=0; i < DNA_SIZE; DNA[i++] = rand()%2);
     }
 
-    pair<bool, unsigned int> getSource(){
+    pair<bool, unsigned int> getSource() const {
         return make_pair(DNA[0], boolArrayToUnsigned(&DNA[1], ID_SIZE));
     }
 
-    pair<bool, unsigned int> getDestination(){
+    pair<bool, unsigned int> getDestination() const {
         return make_pair(DNA[1+ID_SIZE], boolArrayToUnsigned(&DNA[2+ID_SIZE], ID_SIZE));
     }
 
-    unsigned int getWeight(){
+    unsigned int getWeight() const {
         // Weight is 32 bits, so we need to convert it to unsigned int
         return boolArrayToUnsigned(&DNA[2+(ID_SIZE*2)], WEIGHT_SIZE);
     }
@@ -276,6 +54,25 @@ struct genome{
         }
     }
 
+    void print() const {
+        // Print Genome coded and decoded
+        cout << "Coded Genome:\t\t";
+        for(int i=0; i < DNA_SIZE; i++){
+            if(i == 0 || i == 8){cout << BOLD_RED_TEXT;}
+            else if(i > 0 && i < 8 || i > 8 && i < 16){cout << BOLD_YELLOW_TEXT;}
+            else if(i >= 16 && i < 48){cout << BOLD_GREEN_TEXT;}
+            else{cout << RESET_TEXT;}
+            cout << DNA[i] << RESET_TEXT;
+        }
+        cout << endl;
+
+        auto SOURCE = getSource();
+        auto DESTINATION = getDestination();
+
+        cout << "Source ID:\t\t" << SOURCE.second << "\t- isInner: " << SOURCE.first <<endl;
+        cout << "Destination ID:\t\t" << DESTINATION.second << "\t- isInner: " << DESTINATION.first << endl;
+        cout << "Connection Weight\t" << getWeight() << endl;
+    }
 };
 
 struct NN{
@@ -285,6 +82,7 @@ struct NN{
     genome DNA[maxConnection];
 
     pair<int, int> *coord;      // Pointer to the coordinates of the creature
+    
     /*
         nonInnerNeurons:    0~3: Input Neurons
                             4~7: Muscle Neurons
@@ -298,36 +96,30 @@ struct NN{
         // Initialize nonInnerNeurons
         for(int i=0; i < NumberOfNeuronTypes; i++){
             nonInnerNeurons[i] = createNonInnerNeuron(static_cast<NeuronTypes>(i));
+            nonInnerNeurons[i]->setPTR(*coord);
         }
         // Initialize innerNeurons
         for(int i=0; i < maxInnerNeuron; i++){
             innerNeurons[i] = new inner();
-        }
-
-        // Set pointers of neurons
-        for(int i=0; i < NumberOfNeuronTypes; i++){
-            nonInnerNeurons[i]->setPTR(*coord);
-        }
-
-        for(int i=0; i < maxInnerNeuron; i++){
             innerNeurons[i]->setPTR(*coord);
+        }
+    }
+
+    NN(NN &nn){
+        // Copy Constructor
+        for(int i=0; i < NumberOfNeuronTypes; i++){
+            nonInnerNeurons[i] = nn.nonInnerNeurons[i];
+        }
+        for(int i=0; i < maxInnerNeuron; i++){
+            innerNeurons[i] = nn.innerNeurons[i];
+        }
+        for(int i=0; i < maxConnection; i++){
+            DNA[i] = nn.DNA[i];
         }
     }
 
     void setPTR(pair<int, int> &coord){
         this->coord = &coord;
-    }
-
-    void action(){
-        // Decode genomes and send inputs to neurons
-        decodeGenomesAndSendInputs();
-        // Do actions based on output of neurons
-        for(int i=0; i < NumberOfNeuronTypes; i++){
-            nonInnerNeurons[i]->conditionallyDo();
-        }
-        for(int i=0; i < maxInnerNeuron; i++){
-            innerNeurons[i]->conditionallyDo();
-        }
     }
 
     neuron* createNonInnerNeuron(NeuronTypes type) {
@@ -417,6 +209,21 @@ struct NN{
 
     }
 
+    void action(){
+        // Decode genomes and send inputs to neurons
+        decodeGenomesAndSendInputs();
+        // Do actions based on output of neurons
+        for(int i=0; i < NumberOfNeuronTypes; i++){           // !!!!!!!!!! SEGMENT FAULT HERE !!!!!!!!!!!!!!!
+            nonInnerNeurons[i]->conditionallyDo();
+            nonInnerNeurons[i]->print();
+        }
+        for(int i=0; i < maxInnerNeuron; i++){
+            innerNeurons[i]->conditionallyDo();
+            innerNeurons[i]->print();
+        }
+    }
+
+    /*
     void initNeurons(){
         // Connect neurons based on DNA
         for(int i=0; i < maxConnection; i++){
@@ -458,14 +265,22 @@ struct NN{
             }
             else if(SOURCE.first == false){
                 // Create INNER NEURON
-
+                
             }
+        }
+    }*/
+
+    void printDNA() const {
+        for(int i=0; i < maxConnection; i++){
+            cout << "Genome:\t\t\t" << i << endl;
+            DNA[i].print();
+            cout << endl;
         }
     }
 
     ~NN(){
         // Delete all dynamically allocated neurons
-        for(int i=0; i < NumberOfNeuronTypes+maxInnerNeuron; delete nonInnerNeurons[i++]);
+        for(int i=0; i < NumberOfNeuronTypes; delete nonInnerNeurons[i++]);
         for(int i=0; i < maxInnerNeuron; delete innerNeurons[i++]);
     }
 };
@@ -488,8 +303,14 @@ struct creature{
 
     }
 
+    creature(creature &creature){
+        // Copy Constructor
+        this->brain = creature.brain;
+        this->color = creature.color;
+        this->coord = creature.coord;
+    }
 
-    void init(int row, int col){
+    void initCoordinates(int row, int col){
         brain.setPTR(coord);
 
         // Set coordinates
@@ -520,4 +341,10 @@ struct creature{
         return static_cast<Action>(getRandom(0, 6));
     }
 
+    void printDNA() const {
+        cout << BLUE_TEXT << "Creature:\t\t" << this << RESET_TEXT << endl;
+        brain.printDNA();
+    }
+
+    ~creature(){}
 };
