@@ -4,9 +4,22 @@
 
 using namespace std;
 
+// Forward declaration
 #define maxConnection 16
 #define maxInnerNeuron 2
 #define genomeLength 100
+
+// Declaretions for reproduce function
+#define CROSS_OVER_RATIO 0.2
+#define MUTATION_RATIO 0.1
+
+// Declaretions 
+struct creature;
+struct NN;
+struct neuron;
+
+// Declaretions for matrix 
+vector<vector<creature*>>* creatureTable = nullptr;
 
 enum class NeuronTypes{
 
@@ -30,13 +43,6 @@ enum class NeuronTypes{
 const static unsigned int NumberOfNeuronTypes = (int)(NeuronTypes::KILL)+1;
 
 // INNER NEURON
-
-/*
-    100001
-    ^input-muscle or inner neuron
-     ^
-*/
-
 struct activationFunctions {
     // Activation functions are used to determine the output of a neuron
     static double sigmoid(double x) {
@@ -48,17 +54,15 @@ struct activationFunctions {
     }
 };
 
-template <typename T>
 struct neuron{
     // Neurons are the building blocks of neural networks
-    // const static vector<vector<T*>> *mat;
+    // const static vector<vector<T*>> *s;
     double bias;
     double accumulation;
     double output;
     char genome[genomeLength];
 
-    pair<int, int> *coord;      // Pointer to the coordinates of the creature
-    vector<vector<T*>> *mat;    // Pointer to the matrix
+    pair<int, int> *coord;              // Pointer to the coordinates of the creature
 
     neuron(){
         // Initialize bias randomly
@@ -66,17 +70,13 @@ struct neuron{
         accumulation = 0.0;
     }
 
-    /*
-    template <typename T>
-    void unconditionallyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat);
-
-    !????????!?!?!?!?!?!?!? 
-    */
-
-    void setPTR(const pair<int, int> &coord, const vector<vector<T*>> &mat){
+    void setPTR(pair<int, int> &coord){
         this->coord = &coord;
-        this->mat = &mat;
     }
+    
+    // Pure virtual functions, must be implemented in derived classes
+    virtual void conditionallyDo() = 0;
+    virtual void unconditionallyDo() = 0;
 
     void accumulateInput(const double input){ 
         // input = output of source neuron * weight
@@ -90,16 +90,15 @@ struct neuron{
         output = activationFunctions::relu(accumulation);
     }
 
-    bool isOutOfBounds(int row, int col){
-        // If indices are out of bounds do nothing
-        if(row > mat->size()-1 || row < 0 || col > mat->at(0).size()-1 || col < 0){return true;}
+    bool isOutOfBounds() const {
+        // Check if the current neuron's coordinates are out of bounds
+        if(coord->first > creatureTable->size()-1 || coord->first < 0 || coord->second > creatureTable->at(0).size()-1 || coord->second < 0){return true;}
         return false; 
     }
 
-    template <typename T>
-    bool isOccupied(int row, int col){
-        // If given indices are occupied by another creature do nothing
-        if(mat->at(row).at(col) != nullptr){return true;}
+    bool isOccupied(int row, int col) const {
+        // Check if the given coordinates are occupied
+        if(creatureTable->at(row).at(col) != nullptr){return true;}
         return false;
     }
 
@@ -110,139 +109,124 @@ struct neuron{
 // NON-INNER NEURONS
 
 // INPUT NEURONS 
-template <typename T>
-struct leftEye: neuron{         // CORRECTED
+struct leftEye: neuron{       
     double output() const {
         // If there is a creature left of the current creature return 1.0, else return 0.0
-        if(coord->first > mat->size()-1 || coord->first < 0 || coord->second > mat->at(0).size()-1 || coord->second < 0){return -1.0;}   // If there is a wall
-        if(mat->at(row).at(col-1) != nullptr){return 1.0;}                                        // If there is a creature
-        else{return 0.0;}
+        if(isOutOfBounds()){return -1.0;}                               // If there is a wall
+        if(isOccupied(coord->first, coord->second-1)){return 1.0;}      // If there is a creature
+        return 0.0;
     }
+
+    void unconditionallyDo() override {}
+    void conditionallyDo() override {}
 };
 
-// REST NEURON OUTPUTS FUNCTIONS ARE FALSE !!!!!!!!!!!
-template <typename T>
 struct rightEye: neuron{
-    double output(unsigned int row, unsigned int col, const vector<vector<T*>> &mat) const {
+    double output() const {
         // If there is a creature right of the current creature return 1.0, else return 0.0
-        if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return -1.0;}   // If there is a wall
-        if(mat.at(row).at(col+1) != nullptr){return 1.0;}                                        // If there is a creature
-        else{return 0.0;}
+        if(isOutOfBounds()){return -1.0;}                               // If there is a wall
+        if(isOccupied(coord->first, coord->second+1)){return 1.0;}      // If there is a creature
+        return 0.0;
     }
+
+    void unconditionallyDo() override {}
+    void conditionallyDo() override {}
 };
 
-template <typename T>
 struct topEye: neuron{
-    double output(unsigned int row, unsigned int col, const vector<vector<T*>> &mat) const {
+    double output() const {
         // If there is a creature above the current creature return 1.0, else return 0.0
-        if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return -1.0;}   // If there is a wall
-        if(mat.at(row+1).at(col) != nullptr){return 1.0;}                                        // If there is a creature
-        else{return 0.0;}
+        if(isOutOfBounds()){return -1.0;}                               // If there is a wall
+        if(isOccupied(coord->first+1, coord->second)){return 1.0;}      // If there is a creature
+        return 0.0;
     }
+
+    void unconditionallyDo() override {}
+    void conditionallyDo() override {}
 };
 
-template <typename T>
 struct bottomEye: neuron{
-    double output(unsigned int row, unsigned int col, const vector<vector<T*>> &mat) const {
+    double output() const {
         // If there is a creature below the current creature return 1.0, else return 0.0
-        if(row > mat.size()-1 || row < 0 || col > mat.at(0).size()-1 || col < 0){return -1.0;}   // If there is a wall
-        if(mat.at(row-1).at(col) != nullptr){return 1.0;}                                        // If there is a creature
-        else{return 0.0;}
+        if(isOutOfBounds()){return -1.0;}                               // If there is a wall
+        if(isOccupied(coord->first-1, coord->second)){return 1.0;}      // If there is a creature
+        return 0.0;
     }
+
+    void unconditionallyDo() override {}
+    void conditionallyDo() override {}
 };
 
 // MUSCLE NEURONS 
-template <typename T>
 struct goLeft: neuron{
 
-    void unconditionallyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
-        // If indices are out of bounds do nothing
-        if(isOutOfBounds(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
-        // If there is another creature do nothing
-        else if(isOccupied(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
-        // By swapping the creatures we are moving the current creature to the left
-        swap(mat.at(row).at(col), mat.at(row).at(col-1));
+    void unconditionallyDo() override { 
+        if(isOutOfBounds() || isOccupied(coord->first, coord->second-1)){return;}
+        swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(coord->first).at(coord->second-1)); // Swap to the left, so it moves.
     }
 
-    void conditionallyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+    void conditionallyDo() override {
         // If output is positive do the action
-        if(output(row, col, mat) > 0){unconditionallyDo(row, col, mat);}
+        if(output > 0){unconditionallyDo();}
     }
 };
 
-template <typename T>
 struct goRight: neuron{
     
-    void unconditionalyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
-        // If indices are out of bounds do nothing
-        if(isOutOfBounds(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
-        // If there is another creature do nothing
-        else if(isOccupied(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
-        // By swapping the creatures we are moving the current creature to the right
-        swap(mat.at(row).at(col), mat.at(row).at(col+1));
+    void unconditionallyDo() override {
+        if(isOutOfBounds() || isOccupied(coord->first, coord->second+1)){return;}
+        swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(coord->first).at(coord->second+1)); // Swap to the second, so it moves.
     }
 
-    void conditionallyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+    void conditionallyDo() override {
         // If output is positive do the action
-        if(output(row, col, mat) > 0){unconditionallyDo(row, col, mat);}
+        if(output > 0){unconditionallyDo();}
     }
 };
 
-template <typename T>
 struct goUp: neuron{
     
-    void unconditionalyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
-        // If indices are out of bounds do nothing
-        if(isOutOfBounds(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
-        // If there is another creature do nothing
-        else if(isOccupied(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
-        // By swapping the creatures we are moving the current creature to the top
-        swap(mat.at(row).at(col), mat.at(row+1).at(col));
+    void unconditionallyDo() override {
+        if(isOutOfBounds() || isOccupied(coord->first+1, coord->second)){return;}
+        swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(coord->first+1).at(coord->second)); // Swap to the top, so it moves.
     }
 
-    void conditionallyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+    void conditionallyDo() override {
         // If output is positive do the action
-        if(output(row, col, mat) > 0){unconditionallyDo(row, col, mat);}
+        if(output > 0){unconditionallyDo();}
     }
 };
 
-template <typename T>
 struct goDown: neuron{
     
-    void unconditionalyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
-        // If indices are out of bounds do nothing
-        if(isOutOfBounds(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
-        // If there is another creature do nothing
-        else if(isOccupied(unsigned int row, unsigned int col, vector<vector<T*>> &mat)){return;}
-        // By swapping the creatures we are moving the current creature to the bottom
-        swap(mat.at(row).at(col), mat.at(row-1).at(col));
+    void unconditionallyDo() override {
+        if(isOutOfBounds() || isOccupied(coord->first-1, coord->second)){return;}
+        swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(coord->first-1).at(coord->second)); // Swap to the bottom, so it moves.
     }
 
-    void conditionallyDo(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
+    void conditionallyDo() override {
         // If output is positive do the action
-        if(output(row, col, mat) > 0){unconditionallyDo(row, col, mat);}
+        if(output > 0){unconditionallyDo();}
     }
 };
 
-template <typename T>
 struct kill: neuron{
-    double output(unsigned int row, unsigned int col, vector<vector<T*>> &mat){
-        // Implement this !!!!!!!!!!!!
-    }
+    // Kill the creature in moving direction
+    // IMPLEMENT THIS LATER
+    void unconditionallyDo() override {}
+    void conditionallyDo() override {}
 };
 
 // INNER NEURONS
-template <typename T>
 struct inner: neuron{
 
+    void unconditionallyDo() override {}
+    void conditionallyDo() override {}
 };
 
 static const int ID_SIZE = 7;          
 static const int WEIGHT_SIZE = 32;     
 static const int DNA_SIZE = (1+ID_SIZE)*2 + WEIGHT_SIZE;
-
-static const double CROSS_OVER_RATIO = 0.2;
-static const double MUTATION_RATIO = 0.1;
 
 struct genome{
 
@@ -294,7 +278,6 @@ struct genome{
 
 };
 
-template <typename T>
 struct NN{
 
     neuron* nonInnerNeurons[NumberOfNeuronTypes];    // All types of neurons and X number of inner neuron already initialized
@@ -302,7 +285,6 @@ struct NN{
     genome DNA[maxConnection];
 
     pair<int, int> *coord;      // Pointer to the coordinates of the creature
-    vector<vector<T*>> *mat;    // Pointer to the matrix
     /*
         nonInnerNeurons:    0~3: Input Neurons
                             4~7: Muscle Neurons
@@ -319,22 +301,21 @@ struct NN{
         }
         // Initialize innerNeurons
         for(int i=0; i < maxInnerNeuron; i++){
-            innerNeurons[i] = new inner<creature>();
+            innerNeurons[i] = new inner();
         }
 
         // Set pointers of neurons
         for(int i=0; i < NumberOfNeuronTypes; i++){
-            nonInnerNeurons[i]->setPTR(*coord, *mat);
+            nonInnerNeurons[i]->setPTR(*coord);
         }
 
         for(int i=0; i < maxInnerNeuron; i++){
-            innerNeurons[i]->setPTR(*coord, *mat);
+            innerNeurons[i]->setPTR(*coord);
         }
     }
 
-    void setPTR(const pair<int, int> &coord, const vector<vector<T*>> &mat){
+    void setPTR(pair<int, int> &coord){
         this->coord = &coord;
-        this->mat = &mat;
     }
 
     void action(){
@@ -352,23 +333,23 @@ struct NN{
     neuron* createNonInnerNeuron(NeuronTypes type) {
         switch (type) {
             case NeuronTypes::LEFT_EYE:
-                return new leftEye<creature>();
+                return new leftEye();
             case NeuronTypes::RIGHT_EYE:
-                return new rightEye<creature>();
+                return new rightEye();
             case NeuronTypes::TOP_EYE:
-                return new topEye<creature>();
+                return new topEye();
             case NeuronTypes::BOTTOM_EYE:
-                return new bottomEye<creature>();
+                return new bottomEye();
             case NeuronTypes::GO_LEFT:
-                return new goLeft<creature>(); // Add more cases for other neuron types
+                return new goLeft(); // Add more cases for other neuron types
             case NeuronTypes::GO_RIGHT:
-                return new goRight<creature>();
+                return new goRight();
             case NeuronTypes::GO_UP:
-                return new goUp<creature>();
+                return new goUp();
             case NeuronTypes::GO_DOWN:
-                return new goDown<creature>();
+                return new goDown();
             case NeuronTypes::KILL:
-                return new kill<creature>();
+                return new kill();
             // Add more cases for other neuron types
             default:
                 throw invalid_argument("Neuron type is unknown!");
@@ -489,7 +470,6 @@ struct NN{
     }
 };
 
-template <typename T>
 struct creature{
 
     NN brain;
@@ -497,25 +477,36 @@ struct creature{
     string color;
 
     pair<int, int> coord;
-    vector<vector<T*>> *mat;    // Pointer to the matrix
 
-    creature(vector<vector<T*>> &mat){
-        this->mat = &mat;
-
+    creature(){
+        
         // Initialize random color
         random_device rd;
         mt19937 gen(rd());
         uniform_int_distribution<> distribution(0, colorMap.size() - 1);
         color = next(begin(colorMap), distribution(gen))->second;
 
-        // Initialize random coordinates
-        coord.first = getRandom(0, maxRow-1);
-        coord.second = getRandom(0, maxCol-1);
+    }
 
-        brain.setCoordiantes(coord);
 
-        // Set pointer of brain
-        brain.setPTR(coord, *mat);
+    void init(int row, int col){
+        brain.setPTR(coord);
+
+        // Set coordinates
+        coord.first = row;
+        coord.second = col;
+    }
+
+    void reproduce(creature &A){
+        // Create new creature
+    }
+
+    void setCoordiantes(const pair<int, int> &coord){
+        this->coord = coord;
+    }
+
+    void action(){
+        brain.action();
     }
 
     void randomize(){

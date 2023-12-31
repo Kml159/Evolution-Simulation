@@ -23,12 +23,11 @@ struct dummy{
     }
 };
 
-template <typename T>
 class table{
 
     private:
 
-        vector<vector<T*>> mat;
+        vector<vector<creature*>> mat;
         unsigned int populationSize;
 
         void randomize(){
@@ -75,11 +74,26 @@ class table{
         table(unsigned int row, unsigned int col){
             // Constructor
             populationSize = 0;
+
+            // initialize creatureTable
+            creatureTable = &mat;
+
+            // traverse matrix and initialize creatures and add them to the table
             for(int i=0; i < row; i++){
-                vector<T*> arow;
+                vector<creature*> arow;
                 for(int j=0; j < col; j++){
-                    T* A = new T();
+
+
+                    // initialize a creature with random position
+                    creature* A = new creature();   
+
+                    // initialize creature position randomly
+                    A->init(getRandom(0, mat.size()-1), getRandom(0, mat.at(0).size()-1)); 
+
+                    // add creature to the table
                     arow.push_back(A);
+
+                    // increase population size
                     populationSize++;
                 }
                 mat.push_back(arow);
@@ -87,14 +101,17 @@ class table{
         }
 
         table(unsigned int const individualNumber, unsigned int const row, unsigned int const col){
+
+            
+
             // Constructor
             if(row*col < individualNumber){throw invalid_argument("individualNumber is invalid!");};
             populationSize = 0;
             for(int i=0; i < row; i++){
-                vector<T*> arow;
+                vector<creature*> arow;
                 for(int j=0; j < col; j++){
                     if(pop * 100 >= getRandom(1, 100)){
-                        T* A = new T();
+                        creature* A = new creature();
                         arow.push_back(A);
                         populationSize++;
                     }
@@ -106,7 +123,7 @@ class table{
             }
         }
 
-        table(vector<vector<T*>> &mat){
+        table(vector<vector<creature*>> &mat){
             this->mat = mat;
         }
 
@@ -125,8 +142,6 @@ class table{
                 }
             }
         }
-
-
 
         bool isValid(int row, int col) {
             if (row < 0 || row >= mat.size() || col < 0 || col >= mat.at(0).size()) {
@@ -213,7 +228,8 @@ class table{
 int main(){
 
     srand(static_cast<unsigned>(time(nullptr)));
-    table<creature>A(10, 50, 50);
+    table A(10, 50, 50);
+
     A.screen(15);
     
 }

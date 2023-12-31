@@ -1,6 +1,12 @@
 {
     "files.associations": {
         "iostream": "cpp",
-        "vector": "cpp"
-    }
+        "vector": "cpp",
+        "array": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "unordered_map": "cpp",
+        "ios": "cpp"
+    },
+    "C_Cpp.default.compilerPath": "/usr/bin/clang"
 }
