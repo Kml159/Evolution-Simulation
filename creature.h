@@ -120,6 +120,14 @@ struct NN{
 
     void setPTR(pair<int, int> &coord){
         this->coord = &coord;
+
+        // Set pointer to coord for all neurons
+        for(int i=0; i < NumberOfNeuronTypes; i++){
+            nonInnerNeurons[i]->setPTR(coord);
+        }
+        for(int i=0; i < maxInnerNeuron; i++){
+            innerNeurons[i]->setPTR(coord);
+        }
     }
 
     neuron* createNonInnerNeuron(NeuronTypes type) {
@@ -215,11 +223,11 @@ struct NN{
         // Do actions based on output of neurons
         for(int i=0; i < NumberOfNeuronTypes; i++){           // !!!!!!!!!! SEGMENT FAULT HERE !!!!!!!!!!!!!!!
             nonInnerNeurons[i]->conditionallyDo();
-            nonInnerNeurons[i]->print();
+            // nonInnerNeurons[i]->print();
         }
         for(int i=0; i < maxInnerNeuron; i++){
             innerNeurons[i]->conditionallyDo();
-            innerNeurons[i]->print();
+            // innerNeurons[i]->print();
         }
     }
 
@@ -311,11 +319,11 @@ struct creature{
     }
 
     void initCoordinates(int row, int col){
-        brain.setPTR(coord);
-
         // Set coordinates
         coord.first = row;
         coord.second = col;
+
+        brain.setPTR(coord);        
     }
 
     void reproduce(creature &A){

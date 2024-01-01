@@ -6,7 +6,7 @@ using namespace std;
 /*
     TO DO's:
 
-    - Find what casuses the segmentation fault and fix it (its somewhere in the muscle neurons)
+    - Print connections between neurons and what would activate them !!!
 
 */
 

@@ -98,7 +98,6 @@ struct neuron{
 
     bool isOutOfBounds(int row, int col) const {
         // Check if the given coordinates are out of bounds
-        cout << "asd";
         if(creatureTable == nullptr){throw invalid_argument("creatureTable is nullptr!");} 
         else if(row > creatureTable->size()-1 || row < 0 || col > creatureTable->at(0).size()-1 || col < 0){return true;}
         return false; 

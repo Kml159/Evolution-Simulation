@@ -65,61 +65,40 @@ class table{
 
         void clearScreen() const {cout << "\033[H\033[J";}
 
-    public:
-
-        table(unsigned int row, unsigned int col){
-
-            // Initialize pointer to creatureTable
-            creatureTable = &mat;
-
-            // Constructor
-            populationSize = 0;
-
-            // Initialize creatureTable
-            creatureTable = &mat;
-
-            // Traverse matrix and initialize creatures and add them to the table
-            for(int i=0; i < row; i++){
-                vector<creature*> arow;
-                for(int j=0; j < col; j++){
-
-                    // Initialize a creature with random position
-                    creature* A = new creature();   
-
-                    // Initialize creature position randomly
-                    A->initCoordinates(getRandom(0, mat.size()-1), getRandom(0, mat.at(0).size()-1)); 
-
-                    // Add creature to the table
-                    arow.push_back(A);
-
-                    // Increase population size
-                    populationSize++;
-                }
-                mat.push_back(arow);
+        void putRandomCreature(){
+            // Put a random creature in a random position, if place is occupied find another place
+            if(mat.empty()){throw invalid_argument("Table matrix is empty!");}
+            int row = getRandom(0, mat.size()-1);
+            int col = getRandom(0, mat.at(0).size()-1);
+            while(mat.at(row).at(col) != nullptr){
+                row = getRandom(0, mat.size()-1);
+                col = getRandom(0, mat.at(0).size()-1);
             }
+            creature* A = new creature();
+            A->initCoordinates(row, col);
+            mat.at(row).at(col) = A;
         }
+
+    public:
 
         table(unsigned int const individualNumber, unsigned int const row, unsigned int const col){
 
             // Initialize pointer to creatureTable
             creatureTable = &mat;
 
+            // Initialize matrix with given row and col numbers
+             mat.resize(row, vector<creature*>(col, nullptr));
+
             // Constructor
             if(row*col < individualNumber){throw invalid_argument("individualNumber is invalid!");};
             populationSize = 0;
             for(int i=0; i < row; i++){
-                vector<creature*> arow;
                 for(int j=0; j < col; j++){
+                    // If possiblitly is met put a random creature in the matrix
                     if(pop * 100 >= getRandom(1, 100)){
-                        creature* A = new creature();
-                        arow.push_back(A);
-                        populationSize++;
-                    }
-                    else{
-                        arow.push_back(nullptr);
+                        putRandomCreature();
                     }
                 }
-                mat.push_back(arow);
             }
         }
 
@@ -134,7 +113,7 @@ class table{
         }
 
         bool isValid(int row, int col) {
-            
+            // Check if the given coordinates are valid
             if (row < 0 || row >= mat.size() || col < 0 || col >= mat.at(0).size()) {
                 return false; // index out of range
             }
@@ -212,7 +191,7 @@ class table{
                 clearScreen();
                 printInfo();
                 print();
-                this_thread::sleep_for(chrono::milliseconds(stepTime)); // Adjust sleep duration as needed
+                this_thread::sleep_for(chrono::milliseconds(stepTime)); // THIS DOES NOT WORK ON WINDOWS
                 // randomize();
                 update();
             }
