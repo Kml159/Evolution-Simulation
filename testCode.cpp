@@ -10,7 +10,8 @@ using namespace std;
 
 int main(){
 
-    creature A;
+    bool test[] = {1, 1, 1, 1, 1, 0, 0, 0};
 
-    A.printDNA();
+    cout << boolArrayToUnsigned(test, 8) << endl;
+    return 0;
 }

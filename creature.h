@@ -22,8 +22,18 @@ struct genome{
 
     genome(){
         // Initialize DNA randomly
-        for(int i=0; i < DNA_SIZE; DNA[i++] = rand()%2);
+        for(int i=0; i < DNA_SIZE; DNA[i++] = (bool)getRandom(0, 1));
     }
+
+    /*
+        Genome:         0-0011111-0-0000110-01111011010101110100010111000110
+                        ^SourceID ^DestID   ^Weight
+                        ^0        ^8        ^16
+       
+        SourceID:       1~0000000 // First bit: isInner, Rest: Which source neuron is this?
+        DestinationID:  1~0000000 // First bit: isInner, Rest: Which destination neuron is this?
+
+    */
 
     pair<bool, unsigned int> getSource() const {
         return make_pair(DNA[0], boolArrayToUnsigned(&DNA[1], ID_SIZE));
@@ -34,7 +44,6 @@ struct genome{
     }
 
     unsigned int getWeight() const {
-        // Weight is 32 bits, so we need to convert it to unsigned int
         return boolArrayToUnsigned(&DNA[2+(ID_SIZE*2)], WEIGHT_SIZE);
     }
 
@@ -73,6 +82,12 @@ struct genome{
         cout << "Destination ID:\t\t" << DESTINATION.second << "\t- isInner: " << DESTINATION.first << endl;
         cout << "Connection Weight\t" << getWeight() << endl;
     }
+
+    ~genome(){
+        // Delete DNA
+        DNA == nullptr;
+    }
+
 };
 
 struct NN{
@@ -156,6 +171,24 @@ struct NN{
         }
     }
 
+    neuron* getNeuron(const pair<bool, unsigned int> aNeuron) const {
+        neuron* aNeuron_NEURON = nullptr;
+
+        // Inner Neuron
+        if(aNeuron.first == true){   
+            unsigned int aNeuronID = aNeuron.second % maxInnerNeuron;
+            aNeuron_NEURON = innerNeurons[aNeuronID];
+        }
+
+        // Non-Inner Neuron
+        else if(aNeuron.first == false){
+            unsigned int aNeuronID = aNeuron.second % NumberOfNeuronTypes;
+            aNeuron_NEURON = nonInnerNeurons[aNeuronID];
+        }
+
+        return aNeuron_NEURON;
+    }
+
     void decodeGenomesAndSendInputs(){
 
         /*
@@ -168,40 +201,13 @@ struct NN{
         // Decode all nonInnerNeurons
         for(int i=0; i < NumberOfNeuronTypes; i++){
 
-            auto SOURCE = DNA[i].getSource();
-            auto DESTINATION = DNA[i].getDestination();
+            pair<bool, unsigned int> SOURCE = DNA[i].getSource();
+            pair<bool, unsigned int> DESTINATION = DNA[i].getDestination();
             double weight = DNA[i].getWeight();
 
-            neuron* SOURCE_NEURON;
-            neuron* DESTINATION_NEURON;
-
-                    // Decode SOURCE
-
-            // Inner Neuron
-            if(SOURCE.first == true){   
-                unsigned int sourceID = SOURCE.second % maxInnerNeuron;
-                SOURCE_NEURON = innerNeurons[sourceID];
-            }
-
-            // Non-Inner Neuron
-            else if(SOURCE.first == false){
-                unsigned int sourceID = SOURCE.second % NumberOfNeuronTypes;
-                SOURCE_NEURON = nonInnerNeurons[sourceID];
-            }
-
-                    // Decode DESTINATION
-            
-            // Inner Neuron
-            if(DESTINATION.first == true){
-                unsigned int destinationID = DESTINATION.second % maxInnerNeuron;
-                DESTINATION_NEURON = innerNeurons[destinationID];
-            }
-
-            // Non-Inner Neuron
-            else if(DESTINATION.first == false){
-                unsigned int destinationID = DESTINATION.second % NumberOfNeuronTypes;
-                DESTINATION_NEURON = nonInnerNeurons[destinationID];
-            }
+            // Decode genome
+            neuron* SOURCE_NEURON = getNeuron(SOURCE);
+            neuron* DESTINATION_NEURON = getNeuron(DESTINATION);
 
             // Send output to destination neuron
             DESTINATION_NEURON->accumulateInput(SOURCE_NEURON->getOutput() * weight);    
@@ -221,13 +227,23 @@ struct NN{
         // Decode genomes and send inputs to neurons
         decodeGenomesAndSendInputs();
         // Do actions based on output of neurons
-        for(int i=0; i < NumberOfNeuronTypes; i++){           // !!!!!!!!!! SEGMENT FAULT HERE !!!!!!!!!!!!!!!
+        for(int i=0; i < NumberOfNeuronTypes; i++){           //  SEGMENT FAULT HERE (FIXED?!)
             nonInnerNeurons[i]->conditionallyDo();
             // nonInnerNeurons[i]->print();
         }
         for(int i=0; i < maxInnerNeuron; i++){
             innerNeurons[i]->conditionallyDo();
             // innerNeurons[i]->print();
+        }
+    }
+
+    void printNeuronConnections() const {
+        cout << "Source\t\t" << "-> Destination\t\t" << "Weight" << endl;
+        // Print connections between neurons and what would activate them !!!
+        for(int i=0; i < maxConnection; i++){
+            pair<bool, unsigned int> SOURCE = DNA[i].getSource();
+            pair<bool, unsigned int> DESTINATION = DNA[i].getDestination();
+            cout << typeid(*getNeuron(SOURCE)).name() << "\t\t" << "-> " << typeid(*getNeuron(DESTINATION)).name() << "\t\t" << DNA[i].getWeight() << endl;
         }
     }
 
@@ -352,6 +368,11 @@ struct creature{
     void printDNA() const {
         cout << BLUE_TEXT << "Creature:\t\t" << this << RESET_TEXT << endl;
         brain.printDNA();
+    }
+
+    void printNeuronConnections() const {
+        cout << endl << BLUE_TEXT << "Creature:\t\t" << this << RESET_TEXT << endl;
+        brain.printNeuronConnections();
     }
 
     ~creature(){}

@@ -74,8 +74,34 @@ double getRandomDouble(double lowerBound, double upperBound) {
     return randomDouble;
 }
 
-unsigned int boolArrayToUnsigned(const bool* boolArray, int size) {
+unsigned int boolArrayToUnsigned(const bool* boolArray, const int size) {
     unsigned int result = 0;
+    if(boolArray == nullptr) {throw invalid_argument("Cannot convert boolArray, it is nullptr!");}
+    for (int i = 0; i < size; i++) {
+        if (boolArray[i]) {         // !!! SEGMENTATION FAULT !!!
+            result += static_cast<unsigned int>(pow(2, size - 1 - i));
+        }
+    }
+    return result;
+}
+
+unsigned int stringToUnsigned(const string& str) {
+    unsigned int result = 0;
+    for (int i = 0; i < str.size(); i++) {
+        if (str[i] == '1') {
+            result += static_cast<unsigned int>(pow(2, str.size() - 1 - i));
+        }
+    }
+    return result;
+}
+
+/*
+
+// First
+
+unsigned int boolArrayToUnsigned(const bool* boolArray, const int size) {
+    unsigned int result = 0;
+    if(boolArray == nullptr) {throw invalid_argument("Cannot convert boolArray, it is nullptr!");}
     for (int i = size - 1; i >= 0; --i) {
         if (boolArray[i]) {
             result += static_cast<unsigned int>(pow(2, size - 1 - i));
@@ -83,6 +109,21 @@ unsigned int boolArrayToUnsigned(const bool* boolArray, int size) {
     }
     return result;
 }
+
+POOSIBLY MORE EFFICIENT IMPLEMENTATION OF boolArrayToUnsigned
+
+unsigned int boolArrayToUnsigned(const bool* boolArray, int size) {
+    unsigned int result = 0;
+    for (int i = size - 1; i >= 0; --i) {
+        if (boolArray[i]) {
+            result |= (1U << (size - 1 - i));
+        }
+    }
+    return result;
+}
+
+
+*/
 
 struct activationFunctions {
     // Activation functions are used to determine the output of a neuron

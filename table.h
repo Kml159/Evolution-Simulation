@@ -177,7 +177,7 @@ class table{
             }
         }
 
-        void screen(unsigned int seconds) {
+        void screen(unsigned int seconds, char debug = 'N') {
             // Screen function: prints the board for a given number of seconds
             clearScreen();
             if (mat.empty() || mat[0].empty()) {
@@ -187,12 +187,20 @@ class table{
             auto start_time = chrono::high_resolution_clock::now();
             auto end_time = start_time + chrono::seconds(seconds);
 
+            // Pick a creature from matrix in random position
+            creature* randomCreature = mat.at(getRandom(0, mat.size()-1)).at(getRandom(0, mat.at(0).size()-1));
+
+
             while (chrono::high_resolution_clock::now() < end_time) {
-                clearScreen();
-                printInfo();
-                print();
+                if(debug == 'N'){
+                    clearScreen();                
+                    printInfo();
+                    print();
+                }
+                else if(debug == 'Y'){
+                    randomCreature->printNeuronConnections();
+                }
                 this_thread::sleep_for(chrono::milliseconds(stepTime)); // THIS DOES NOT WORK ON WINDOWS
-                // randomize();
                 update();
             }
         }

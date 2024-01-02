@@ -15,6 +15,6 @@ int main(){
     srand(static_cast<unsigned>(time(nullptr)));
     table A(10, 50, 50);
 
-    A.screen(15);
+    A.screen(10, 'Y');
     
 }

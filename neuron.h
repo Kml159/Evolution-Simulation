@@ -120,6 +120,7 @@ struct neuron{
         cout << "Output:\t\t\t" << output << endl;
         cout << endl;
     }
+
 };
 
 // NON-INNER NEURONS
