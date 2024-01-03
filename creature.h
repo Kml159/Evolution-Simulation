@@ -10,7 +10,8 @@ static const int DNA_SIZE = (1+ID_SIZE)*2 + WEIGHT_SIZE;
 
 struct genome{
 
-    bool DNA[DNA_SIZE];
+    // Genome is a string of 0's and 1's randomly string
+    string DNA;
 
     /*
         Genome:         0-0011111-0-0000110-01111011010101110100010111000110
@@ -22,7 +23,10 @@ struct genome{
 
     genome(){
         // Initialize DNA randomly
-        for(int i=0; i < DNA_SIZE; DNA[i++] = (bool)getRandom(0, 1));
+        DNA = "";
+        for(int i=0; i < DNA_SIZE; i++){
+            DNA += to_string(getRandom(0, 1));
+        }
     }
 
     /*
@@ -36,15 +40,15 @@ struct genome{
     */
 
     pair<bool, unsigned int> getSource() const {
-        return make_pair(DNA[0], boolArrayToUnsigned(&DNA[1], ID_SIZE));
+        return make_pair(charToBool(DNA[0]), stringToUnsigned(DNA, 1, ID_SIZE));
     }
 
     pair<bool, unsigned int> getDestination() const {
-        return make_pair(DNA[1+ID_SIZE], boolArrayToUnsigned(&DNA[2+ID_SIZE], ID_SIZE));
+        return make_pair(charToBool(DNA[1+ID_SIZE]), stringToUnsigned(DNA, 2+ID_SIZE, ID_SIZE));
     }
 
     unsigned int getWeight() const {
-        return boolArrayToUnsigned(&DNA[2+(ID_SIZE*2)], WEIGHT_SIZE);
+        return stringToUnsigned(DNA, 2+(ID_SIZE*2), WEIGHT_SIZE);
     }
 
     void crossOver(genome& A){
@@ -81,11 +85,6 @@ struct genome{
         cout << "Source ID:\t\t" << SOURCE.second << "\t- isInner: " << SOURCE.first <<endl;
         cout << "Destination ID:\t\t" << DESTINATION.second << "\t- isInner: " << DESTINATION.first << endl;
         cout << "Connection Weight\t" << getWeight() << endl;
-    }
-
-    ~genome(){
-        // Delete DNA
-        DNA == nullptr;
     }
 
 };
@@ -238,12 +237,18 @@ struct NN{
     }
 
     void printNeuronConnections() const {
-        cout << "Source\t\t" << "-> Destination\t\t" << "Weight" << endl;
+        cout << YELLOW_TEXT;
+        cout << setw(20) << left << "Source"
+        << setw(20) << left << "Destination"
+        << setw(20) << left << "Weight" << endl;
+        cout << RESET_TEXT;
         // Print connections between neurons and what would activate them !!!
         for(int i=0; i < maxConnection; i++){
             pair<bool, unsigned int> SOURCE = DNA[i].getSource();
             pair<bool, unsigned int> DESTINATION = DNA[i].getDestination();
-            cout << typeid(*getNeuron(SOURCE)).name() << "\t\t" << "-> " << typeid(*getNeuron(DESTINATION)).name() << "\t\t" << DNA[i].getWeight() << endl;
+            cout << setw(20) << left << typeid(*getNeuron(SOURCE)).name() 
+            << setw(20) << left << typeid(*getNeuron(DESTINATION)).name() 
+            << setw(20) << left << DNA[i].getWeight() << endl;
         }
     }
 
@@ -371,7 +376,7 @@ struct creature{
     }
 
     void printNeuronConnections() const {
-        cout << endl << BLUE_TEXT << "Creature:\t\t" << this << RESET_TEXT << endl;
+        cout << endl << BLUE_TEXT << setw(20) << left << "Creature:" << setw(20) << left << this << RESET_TEXT << endl;
         brain.printNeuronConnections();
     }
 

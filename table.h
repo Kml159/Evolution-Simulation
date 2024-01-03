@@ -24,7 +24,9 @@ class table{
     private:
 
         vector<vector<creature*>> mat;
+        vector<creature*> creatures;        // USE THIS LATER !!!
         unsigned int populationSize;
+        creature* randomCreature;
 
         void randomize(){
             // Randomize all matrix elements if exits
@@ -75,8 +77,11 @@ class table{
                 col = getRandom(0, mat.at(0).size()-1);
             }
             creature* A = new creature();
+            creatures.push_back(A);
+            randomCreature = A;
             A->initCoordinates(row, col);
             mat.at(row).at(col) = A;
+            populationSize++;
         }
 
     public:
@@ -186,10 +191,6 @@ class table{
 
             auto start_time = chrono::high_resolution_clock::now();
             auto end_time = start_time + chrono::seconds(seconds);
-
-            // Pick a creature from matrix in random position
-            creature* randomCreature = mat.at(getRandom(0, mat.size()-1)).at(getRandom(0, mat.at(0).size()-1));
-
 
             while (chrono::high_resolution_clock::now() < end_time) {
                 if(debug == 'N'){

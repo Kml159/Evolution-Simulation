@@ -74,6 +74,8 @@ double getRandomDouble(double lowerBound, double upperBound) {
     return randomDouble;
 }
 
+bool charToBool(char c) {return (c == '1');}
+
 unsigned int boolArrayToUnsigned(const bool* boolArray, const int size) {
     unsigned int result = 0;
     if(boolArray == nullptr) {throw invalid_argument("Cannot convert boolArray, it is nullptr!");}
@@ -85,14 +87,18 @@ unsigned int boolArrayToUnsigned(const bool* boolArray, const int size) {
     return result;
 }
 
-unsigned int stringToUnsigned(const string& str) {
+unsigned int stringToUnsigned(const string& str, int start, int size) {
     unsigned int result = 0;
-    for (int i = 0; i < str.size(); i++) {
+    if (start < 0) {throw invalid_argument("Cannot convert string to unsigned, start is negative!");}
+    if (size < 0) {throw invalid_argument("Cannot convert string to unsigned, size is negative!");}
+    if (start + size > str.size()) {throw invalid_argument("Cannot convert string to unsigned, start + size is greater than string size!");}
+    for (int i = start; i < start + size; i++) {
         if (str[i] == '1') {
-            result += static_cast<unsigned int>(pow(2, str.size() - 1 - i));
+            result += static_cast<unsigned int>(pow(2, start + size - 1 - i));
         }
+        else if(str[i] != '0') {throw invalid_argument("Cannot convert string to unsigned, string contains invalid characters!");}
     }
-    return result;
+    return result;    
 }
 
 /*

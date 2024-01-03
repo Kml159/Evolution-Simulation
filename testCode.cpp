@@ -10,8 +10,12 @@ using namespace std;
 
 int main(){
 
-    bool test[] = {1, 1, 1, 1, 1, 0, 0, 0};
+    srand(static_cast<unsigned>(time(nullptr)));
 
-    cout << boolArrayToUnsigned(test, 8) << endl;
+    creature A;
+
+    A.printNeuronConnections();
+
+    
     return 0;
 }
