@@ -199,7 +199,8 @@ class table{
                     print();
                 }
                 else if(debug == 'Y'){
-                    randomCreature->printNeuronConnections();
+                    // randomCreature->printNeuronConnections();
+                    randomCreature->printDNA();
                 }
                 this_thread::sleep_for(chrono::milliseconds(stepTime)); // THIS DOES NOT WORK ON WINDOWS
                 update();

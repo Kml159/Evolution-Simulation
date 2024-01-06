@@ -87,6 +87,19 @@ struct genome{
         cout << "Connection Weight\t" << getWeight() << endl;
     }
 
+    void printCode() const {
+        // Print Genome coded
+        cout << "Coded Genome:\t\t";
+        for(int i=0; i < DNA_SIZE; i++){
+            if(i == 0 || i == 8){cout << BOLD_RED_TEXT;}
+            else if(i > 0 && i < 8 || i > 8 && i < 16){cout << BOLD_YELLOW_TEXT;}
+            else if(i >= 16 && i < 48){cout << BOLD_GREEN_TEXT;}
+            else{cout << RESET_TEXT;}
+            cout << DNA[i] << RESET_TEXT;
+        }
+        cout << endl;
+    }
+
 };
 
 struct NN{
@@ -301,9 +314,9 @@ struct NN{
 
     void printDNA() const {
         for(int i=0; i < maxConnection; i++){
-            cout << "Genome:\t\t\t" << i << endl;
-            DNA[i].print();
-            cout << endl;
+            // cout << "Genome:\t\t\t" << i << endl;
+            DNA[i].printCode();
+            // cout << endl;
         }
     }
 
