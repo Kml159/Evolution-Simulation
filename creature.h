@@ -360,8 +360,26 @@ struct creature{
         brain.setPTR(coord);        
     }
 
-    void reproduce(creature &A){
+    void reproduceWith(creature &A){
         // Create new creature
+        creature* B = new creature();
+        // Gets some genomes from parent A and some from parent B
+        for(int i=0; i < maxConnection; i++){
+            if(getRandom(0, 1) == 0){
+                B->brain.DNA[i] = A.brain.DNA[i];
+            }
+            else{
+                B->brain.DNA[i] = brain.DNA[i];
+            }
+        }
+
+        // Mutate
+        for(int i=0; i < maxConnection; i++){
+            if(getRandom(0, 100) < MUTATION_RATIO){
+                B->brain.DNA[i].mutation();
+            }
+        }
+
     }
 
     void setCoordiantes(const pair<int, int> &coord){

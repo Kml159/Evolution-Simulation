@@ -10,6 +10,7 @@ using namespace std;
     - put creatures into vector !!!
     - use mutate
     - figure out why creatures are not moving after 1-2 generations
+    - print the changes in single DNA
 
     DONE:
 
