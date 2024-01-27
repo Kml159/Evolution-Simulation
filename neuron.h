@@ -73,16 +73,32 @@ struct neuron{
     }
     
     // Pure virtual functions, must be implemented in derived classes
-    virtual void conditionallyDo() = 0;
+    void conditionallyDo() {
+        // If output is positive do the action
+        if(output > 0){
+            reportAction(true);
+            unconditionallyDo();
+        }
+        else{
+            reportAction(false);
+        }
+    }    
+    
     virtual void unconditionallyDo() = 0;
     virtual ~neuron() {}
 
-    void accumulateInput(const double input){ 
-        // input = output of source neuron * weight
-        accumulation += input;
+    inline void accumulateInput(const double input){accumulation += input;}
+    inline void reset(){
+        accumulation = 0.0; 
+        output = 0.0;
     }
 
-    void calculateOutput(){
+    inline void reportAction(bool isActivated) const {
+        isActivated ? cout << GREEN_TEXT << typeid(*this).name() << " activated!" << RESET_TEXT : cout << RED_TEXT << typeid(*this).name() << " not activated!" << RESET_TEXT;
+        cout << "\t\tOutput: " << output << endl;
+    }
+
+    inline void calculateOutput(){
         // Calculate output by applying activation function to accumulation
         // output = activationFunctions::relu(bias + (W_1 * A_1 + W_2 * A_2 + W_3 * A_3 + ... + W_n * A_n));
         accumulation += bias;
@@ -110,9 +126,9 @@ struct neuron{
         return false;
     }
 
-    double getOutput() const {return output;}
+    inline double getOutput() const {return output;}
 
-    void print() const {
+    inline void print() const {
         cout << CYAN_TEXT << "Neuron:\t\t\t" << this << RESET_TEXT << endl;
         cout << typeid(*this).name() << endl;
         cout << "Bias:\t\t\t" << bias << endl;
@@ -135,7 +151,6 @@ struct leftEye: neuron{
     }
 
     void unconditionallyDo() override {}
-    void conditionallyDo() override {}
 };
 
 struct rightEye: neuron{
@@ -147,7 +162,6 @@ struct rightEye: neuron{
     }
 
     void unconditionallyDo() override {}
-    void conditionallyDo() override {}
 };
 
 struct topEye: neuron{
@@ -159,7 +173,6 @@ struct topEye: neuron{
     }
 
     void unconditionallyDo() override {}
-    void conditionallyDo() override {}
 };
 
 struct bottomEye: neuron{
@@ -171,10 +184,9 @@ struct bottomEye: neuron{
     }
 
     void unconditionallyDo() override {}
-    void conditionallyDo() override {}
 };
 
-// MUSCLE NEURONS       // SEGMENTATION FAULT HERE !!!!!!!!!!!!!!!!!!!!
+// MUSCLE NEURONS
 struct goLeft: neuron{
 
     void unconditionallyDo() override { 
@@ -184,10 +196,6 @@ struct goLeft: neuron{
         swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(row).at(col));    // Swap to the left, so it moves.
     }
 
-    void conditionallyDo() override {
-        // If output is positive do the action
-        if(output > 0){unconditionallyDo();}
-    }
 };
 
 struct goRight: neuron{
@@ -197,11 +205,6 @@ struct goRight: neuron{
         int col = coord->second + 1;
         if(isOutOfBounds(row, col) || isOccupied(row, col)){return;}
         swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(row).at(col)); // Swap to the right, so it moves.
-    }
-
-    void conditionallyDo() override {
-        // If output is positive do the action
-        if(output > 0){unconditionallyDo();}
     }
 };
 
@@ -214,10 +217,6 @@ struct goUp: neuron{
         swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(row).at(col)); // Swap to the top, so it moves.
     }
 
-    void conditionallyDo() override {
-        // If output is positive do the action
-        if(output > 0){unconditionallyDo();}
-    }
 };
 
 struct goDown: neuron{
@@ -229,22 +228,16 @@ struct goDown: neuron{
         swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(row).at(col)); // Swap to the bottom, so it moves.
     }
 
-    void conditionallyDo() override {
-        // If output is positive do the action
-        if(output > 0){unconditionallyDo();}
-    }
 };
 
 struct kill: neuron{
     // Kill the creature in moving direction
     // IMPLEMENT THIS LATER
     void unconditionallyDo() override {}
-    void conditionallyDo() override {}
 };
 
 // INNER NEURONS
 struct inner: neuron{
     
     void unconditionallyDo() override {}
-    void conditionallyDo() override {}
 };

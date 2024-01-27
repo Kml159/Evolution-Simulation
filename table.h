@@ -172,7 +172,7 @@ class table{
         }
         */
 
-        void update(){
+        inline void update(){
             // Updates the board with the new positions of the creatures after their actions
             for(int i=0; i < mat.size(); i++){
                 for(int j=0; j < mat.at(0).size(); j++){
@@ -182,28 +182,21 @@ class table{
             }
         }
 
-        void screen(unsigned int seconds, char debug = 'N') {
-            // Screen function: prints the board for a given number of seconds
+        inline void screen(){
+            clearScreen();                
+            printInfo();
+            print();
+            update();
+            randomCreature->printNeuronConnections();
+        }
+
+        inline void screen(int loop, int sleep){
             clearScreen();
-            if (mat.empty() || mat[0].empty()) {
-                throw invalid_argument("Matrix does not exist!\nCannot print.");
-            }
+            if(mat.empty() || mat[0].empty()){throw invalid_argument("Matrix does not exist!\nCannot print.");}
 
-            auto start_time = chrono::high_resolution_clock::now();
-            auto end_time = start_time + chrono::seconds(seconds);
-
-            while (chrono::high_resolution_clock::now() < end_time) {
-                if(debug == 'N'){
-                    clearScreen();                
-                    printInfo();
-                    print();
-                }
-                else if(debug == 'Y'){
-                    // randomCreature->printNeuronConnections();
-                    randomCreature->printDNA();
-                }
-                this_thread::sleep_for(chrono::milliseconds(stepTime)); // THIS DOES NOT WORK ON WINDOWS
-                update();
+            for(int i=0; i < loop; i++){
+                screen();
+                this_thread::sleep_for(chrono::milliseconds(sleep)); // THIS DOES NOT WORK ON WINDOWS
             }
         }
 

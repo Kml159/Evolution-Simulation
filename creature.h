@@ -27,6 +27,10 @@ struct genome{
         for(int i=0; i < DNA_SIZE; i++){
             DNA += to_string(getRandom(0, 1));
         }
+
+        // TEST -  CHANGE WEIGHT TO LOWER NUMBER - DELETE THIS LATER !!!
+        // DNA.replace(16, 32, "00000000000000000000000000000010");
+        
     }
 
     /*
@@ -47,7 +51,7 @@ struct genome{
         return make_pair(charToBool(DNA[1+ID_SIZE]), stringToUnsigned(DNA, 2+ID_SIZE, ID_SIZE));
     }
 
-    unsigned int getWeight() const {
+    inline unsigned int getWeight() const {
         return stringToUnsigned(DNA, 2+(ID_SIZE*2), WEIGHT_SIZE);
     }
 
@@ -67,7 +71,7 @@ struct genome{
         }
     }
 
-    void print() const {
+    inline void print() const {
         // Print Genome coded and decoded
         cout << "Coded Genome:\t\t";
         for(int i=0; i < DNA_SIZE; i++){
@@ -87,7 +91,7 @@ struct genome{
         cout << "Connection Weight\t" << getWeight() << endl;
     }
 
-    void printCode() const {
+    inline void printCode() const {
         // Print Genome coded
         cout << "Coded Genome:\t\t";
         for(int i=0; i < DNA_SIZE; i++){
@@ -104,11 +108,10 @@ struct genome{
 
 struct NN{
 
-    neuron* nonInnerNeurons[NumberOfNeuronTypes];    // All types of neurons and X number of inner neuron already initialized
-    neuron* innerNeurons[maxInnerNeuron];            // Inner neurons are created dynamically
-    genome DNA[maxConnection];
-
-    pair<int, int> *coord;      // Pointer to the coordinates of the creature
+    neuron* nonInnerNeurons[NumberOfNeuronTypes];       // All types of neurons and X number of inner neuron already initialized
+    neuron* innerNeurons[maxInnerNeuron];               // Inner neurons are created dynamically
+    genome DNA[maxConnection];                          // DNA of the creature
+    pair<int, int> *coord;                              // Pointer to the coordinates of the creature
     
     /*
         nonInnerNeurons:    0~3: Input Neurons
@@ -226,42 +229,46 @@ struct NN{
         }
 
         // Finally calculate output of all neurons
-        for(int i=0; i < NumberOfNeuronTypes; i++){
-            nonInnerNeurons[i]->calculateOutput();
-        }
-        for(int i=0; i < maxInnerNeuron; i++){
-            innerNeurons[i]->calculateOutput();
-        }
+        for(int i=0; i < NumberOfNeuronTypes; nonInnerNeurons[i++]->calculateOutput());
+        for(int i=0; i < maxInnerNeuron; innerNeurons[i++]->calculateOutput());
+    }
 
+    inline void clearNeurons(){
+        // Clear all neurons
+        for(int i=0; i < NumberOfNeuronTypes; nonInnerNeurons[i++]->reset());
+        for(int i=0; i < maxInnerNeuron; innerNeurons[i++]->reset());
+    }
+
+    inline void fire(){
+        for(int i=0; i < NumberOfNeuronTypes; nonInnerNeurons[i++]->conditionallyDo());
+        for(int i=0; i < maxInnerNeuron; innerNeurons[i++]->conditionallyDo());
     }
 
     void action(){
-        // Decode genomes and send inputs to neurons
+        clearNeurons();
         decodeGenomesAndSendInputs();
-        // Do actions based on output of neurons
-        for(int i=0; i < NumberOfNeuronTypes; i++){           //  SEGMENT FAULT HERE (FIXED?!)
-            nonInnerNeurons[i]->conditionallyDo();
-            // nonInnerNeurons[i]->print();
-        }
-        for(int i=0; i < maxInnerNeuron; i++){
-            innerNeurons[i]->conditionallyDo();
-            // innerNeurons[i]->print();
-        }
+        fire();
     }
 
     void printNeuronConnections() const {
         cout << YELLOW_TEXT;
         cout << setw(20) << left << "Source"
         << setw(20) << left << "Destination"
-        << setw(20) << left << "Weight" << endl;
+        << setw(20) << left << "Weight" 
+        << setw(20) << left << "Output"
+        << endl;
         cout << RESET_TEXT;
-        // Print connections between neurons and what would activate them !!!
+
+
         for(int i=0; i < maxConnection; i++){
+            // cout << maxConnection << " - " << i << " - " << NumberOfNeuronTypes << " - " << maxInnerNeuron << endl;
             pair<bool, unsigned int> SOURCE = DNA[i].getSource();
             pair<bool, unsigned int> DESTINATION = DNA[i].getDestination();
             cout << setw(20) << left << typeid(*getNeuron(SOURCE)).name() 
             << setw(20) << left << typeid(*getNeuron(DESTINATION)).name() 
-            << setw(20) << left << DNA[i].getWeight() << endl;
+            << setw(20) << left << DNA[i].getWeight()
+            << setw(20) << left << setprecision(10) << getNeuron(SOURCE)->getOutput(); // Set the precision to 10
+            cout << endl;
         }
     }
 
@@ -382,13 +389,15 @@ struct creature{
 
     }
 
-    void setCoordiantes(const pair<int, int> &coord){
-        this->coord = coord;
+    creature operator*(creature &A){
+
+        // Reproduce with A and return the new creature
+
     }
 
-    void action(){
-        brain.action();
-    }
+    void setCoordiantes(const pair<int, int> &coord){this->coord = coord;}
+
+    void action(){brain.action();}
 
     void randomize(){
         random_device rd;
@@ -397,9 +406,7 @@ struct creature{
         color = next(begin(colorMap), distribution(gen))->second;
     }
 
-    Action randomAction() {
-        return static_cast<Action>(getRandom(0, 6));
-    }
+    Action randomAction() {return static_cast<Action>(getRandom(0, 6));}
 
     void printDNA() const {
         cout << BLUE_TEXT << "Creature:\t\t" << this << RESET_TEXT << endl;
