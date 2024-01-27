@@ -356,6 +356,10 @@ struct creature{
         this->coord = creature.coord;
     }
 
+    void setCreature(){
+        brain.setCreature(this);
+    }
+
     void initCoordinates(int row, int col){
         // Set coordinates
         coord.first = row;

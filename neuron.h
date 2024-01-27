@@ -41,8 +41,6 @@ enum class NeuronTypes{
 
 const static unsigned int NumberOfNeuronTypes = (int)(NeuronTypes::KILL)+1;
 
-// INNER NEURON
-
 struct neuron{
     
     double bias;
@@ -67,9 +65,7 @@ struct neuron{
         this->coord = neuron.coord;
     }
 
-    void setPTR(pair<int, int> &coord){
-        this->coord = &coord;
-    }
+    void setPTR(pair<int, int> &coord){this->coord = &coord;}
     
     // Pure virtual functions, must be implemented in derived classes
     void conditionallyDo() {
@@ -87,13 +83,16 @@ struct neuron{
     virtual ~neuron() {}
 
     inline void accumulateInput(const double input){accumulation += input;}
+    
     inline void reset(){
         accumulation = 0.0; 
         output = 0.0;
     }
 
     inline void reportAction(bool isActivated) const {
-        isActivated ? cout << GREEN_TEXT << typeid(*this).name() << " activated!" << RESET_TEXT : cout << RED_TEXT << typeid(*this).name() << " not activated!" << RESET_TEXT;
+        // isActivated ? cout << GREEN_TEXT << typeid(*this).name() << " activated!" << RESET_TEXT : cout << RED_TEXT << typeid(*this).name() << " not activated!" << RESET_TEXT;
+        if(isActivated){cout << GREEN_TEXT << setw(20) << typeid(*this).name() << RESET_TEXT;}
+        else{cout << RED_TEXT << setw(20) << typeid(*this).name() << RESET_TEXT;}
         cout << "\t\tOutput: " << output << endl;
     }
 
@@ -125,7 +124,7 @@ struct neuron{
         return false;
     }
 
-    inline double getOutput() const {return output;}
+    inline virtual double getOutput() const {return output;}
 
     inline void print() const {
         cout << CYAN_TEXT << "Neuron:\t\t\t" << this << RESET_TEXT << endl;
@@ -138,11 +137,9 @@ struct neuron{
 
 };
 
-// NON-INNER NEURONS
-
 // INPUT NEURONS 
 struct leftEye: neuron{       
-    double output() const {
+    double getOutput() const override {
         // If there is a creature left of the current creature return 1.0, else return 0.0
         if(isOutOfBounds()){return -1.0;}                               // If there is a wall
         if(isOccupied(coord->first, coord->second-1)){return 1.0;}      // If there is a creature
@@ -153,7 +150,9 @@ struct leftEye: neuron{
 };
 
 struct rightEye: neuron{
-    double output() const {
+    // Override output function
+
+    double getOutput() const override {
         // If there is a creature right of the current creature return 1.0, else return 0.0
         if(isOutOfBounds()){return -1.0;}                               // If there is a wall
         if(isOccupied(coord->first, coord->second+1)){return 1.0;}      // If there is a creature
@@ -164,7 +163,7 @@ struct rightEye: neuron{
 };
 
 struct topEye: neuron{
-    double output() const {
+    double getOutput() const override {
         // If there is a creature above the current creature return 1.0, else return 0.0
         if(isOutOfBounds()){return -1.0;}                               // If there is a wall
         if(isOccupied(coord->first+1, coord->second)){return 1.0;}      // If there is a creature
@@ -175,7 +174,7 @@ struct topEye: neuron{
 };
 
 struct bottomEye: neuron{
-    double output() const {
+    double getOutput() const override {
         // If there is a creature below the current creature return 1.0, else return 0.0
         if(isOutOfBounds()){return -1.0;}                               // If there is a wall
         if(isOccupied(coord->first-1, coord->second)){return 1.0;}      // If there is a creature
@@ -194,7 +193,6 @@ struct goLeft: neuron{
         if(isOutOfBounds(row, col) || isOccupied(row, col)){return;}                                // If there is a wall or a creature, do nothing
         swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(row).at(col));    // Swap to the left, so it moves.
     }
-
 };
 
 struct goRight: neuron{
@@ -215,7 +213,6 @@ struct goUp: neuron{
         if(isOutOfBounds(row, col) || isOccupied(row, col)){return;}
         swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(row).at(col)); // Swap to the top, so it moves.
     }
-
 };
 
 struct goDown: neuron{
@@ -226,7 +223,6 @@ struct goDown: neuron{
         if(isOutOfBounds(row, col) || isOccupied(row, col)){return;}
         swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(row).at(col)); // Swap to the bottom, so it moves.
     }
-
 };
 
 struct kill: neuron{

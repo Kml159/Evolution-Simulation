@@ -3,7 +3,7 @@
 
 using namespace std;
 
-#define pop 0.1
+#define pop 0.01
 #define stepTime 200   // FPS by milisecond
 
 struct dummy{
@@ -28,12 +28,16 @@ class table{
         creature* randomCreature;
 
         void randomize(){
-            // Randomize all matrix elements if exits
-            for(int i=0; i < mat.size(); i++){
-                for(int j=0; j < mat.at(0).size(); j++){
-                    if(mat.at(i).at(j) != nullptr){mat.at(i).at(j)->randomize();}
+            for(int i=0; i < creatures.size(); creatures.at(i++)->randomize());
+
+            /*
+                // Randomize all matrix elements if exits
+                for(int i=0; i < mat.size(); i++){
+                    for(int j=0; j < mat.at(0).size(); j++){
+                        if(mat.at(i).at(j) != nullptr){mat.at(i).at(j)->randomize();}
+                    }
                 }
-            }
+            */
         }
 
         void print() const {
@@ -107,11 +111,10 @@ class table{
             // Select a random creature
             this->randomCreature = creatures.at(getRandom(0, creatures.size()-1));
             this->randomCreature->isChoosen = true;
+            this->randomCreature->setCreature();
         }
 
-        table(vector<vector<creature*>> &mat){
-            this->mat = mat;
-        }
+        table(vector<vector<creature*>> &mat){this->mat = mat;}
 
         table(table &table){
             // Copy Constructor
@@ -175,13 +178,7 @@ class table{
         */
 
         inline void update(){
-            // Updates the board with the new positions of the creatures after their actions
-            for(int i=0; i < mat.size(); i++){
-                for(int j=0; j < mat.at(0).size(); j++){
-                    if(mat.at(i).at(j) == nullptr){continue;}
-                    mat.at(i).at(j)->action();
-                }
-            }
+            for(int i=0; i < creatures.size(); creatures.at(i++)->action());
         }
 
         inline void screen(){
