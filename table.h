@@ -1,5 +1,4 @@
 #include <iostream>
-
 #include "creature.h"
 
 using namespace std;
@@ -78,7 +77,6 @@ class table{
             }
             creature* A = new creature();
             creatures.push_back(A);
-            randomCreature = A;
             A->initCoordinates(row, col);
             mat.at(row).at(col) = A;
             populationSize++;
@@ -105,6 +103,10 @@ class table{
                     }
                 }
             }
+
+            // Select a random creature
+            this->randomCreature = creatures.at(getRandom(0, creatures.size()-1));
+            this->randomCreature->isChoosen = true;
         }
 
         table(vector<vector<creature*>> &mat){

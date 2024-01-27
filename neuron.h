@@ -1,5 +1,4 @@
 #include <iostream>
-
 #include "static.h"
 
 using namespace std;
@@ -45,12 +44,12 @@ const static unsigned int NumberOfNeuronTypes = (int)(NeuronTypes::KILL)+1;
 // INNER NEURON
 
 struct neuron{
-    // Neurons are the building blocks of neural networks
-    // const static vector<vector<T*>> *s;
+    
     double bias;
     double accumulation;
     double output;
     char genome[genomeLength];
+    creature* owner = nullptr;
 
     pair<int, int> *coord;              // Pointer to the coordinates of the creature
 
@@ -76,11 +75,11 @@ struct neuron{
     void conditionallyDo() {
         // If output is positive do the action
         if(output > 0){
-            reportAction(true);
+            if(owner != nullptr){reportAction(true);}
             unconditionallyDo();
         }
         else{
-            reportAction(false);
+            if(owner != nullptr){reportAction(false);}
         }
     }    
     

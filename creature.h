@@ -1,5 +1,4 @@
 #include <iostream>
-
 #include "neuron.h"
 
 using namespace std;
@@ -137,27 +136,23 @@ struct NN{
 
     NN(NN &nn){
         // Copy Constructor
-        for(int i=0; i < NumberOfNeuronTypes; i++){
-            nonInnerNeurons[i] = nn.nonInnerNeurons[i];
-        }
-        for(int i=0; i < maxInnerNeuron; i++){
-            innerNeurons[i] = nn.innerNeurons[i];
-        }
-        for(int i=0; i < maxConnection; i++){
-            DNA[i] = nn.DNA[i];
-        }
+        for(int i=0; i < NumberOfNeuronTypes; nonInnerNeurons[i] = nn.nonInnerNeurons[i++]);
+        for(int i=0; i < maxInnerNeuron; innerNeurons[i] = nn.innerNeurons[i++]);
+        for(int i=0; i < maxConnection; DNA[i] = nn.DNA[i++]);
+    }
+
+    void setCreature(creature* owner){
+        // Set owner of the NN
+        for(int i=0; i < NumberOfNeuronTypes; nonInnerNeurons[i++]->owner = owner);
+        for(int i=0; i < maxInnerNeuron; innerNeurons[i++]->owner = owner);
     }
 
     void setPTR(pair<int, int> &coord){
         this->coord = &coord;
 
         // Set pointer to coord for all neurons
-        for(int i=0; i < NumberOfNeuronTypes; i++){
-            nonInnerNeurons[i]->setPTR(coord);
-        }
-        for(int i=0; i < maxInnerNeuron; i++){
-            innerNeurons[i]->setPTR(coord);
-        }
+        for(int i=0; i < NumberOfNeuronTypes; nonInnerNeurons[i++]->setPTR(coord));
+        for(int i=0; i < maxInnerNeuron; innerNeurons[i++]->setPTR(coord));
     }
 
     neuron* createNonInnerNeuron(NeuronTypes type) {
@@ -251,6 +246,8 @@ struct NN{
     }
 
     void printNeuronConnections() const {
+        
+        cout << string(80, '-') << endl;
         cout << YELLOW_TEXT;
         cout << setw(20) << left << "Source"
         << setw(20) << left << "Destination"
@@ -258,7 +255,6 @@ struct NN{
         << setw(20) << left << "Output"
         << endl;
         cout << RESET_TEXT;
-
 
         for(int i=0; i < maxConnection; i++){
             // cout << maxConnection << " - " << i << " - " << NumberOfNeuronTypes << " - " << maxInnerNeuron << endl;
@@ -270,6 +266,7 @@ struct NN{
             << setw(20) << left << setprecision(10) << getNeuron(SOURCE)->getOutput(); // Set the precision to 10
             cout << endl;
         }
+        cout << string(80, '-') << endl;
     }
 
     /*
@@ -339,7 +336,7 @@ struct creature{
     NN brain;
     static const char symbol = 'o';
     string color;
-
+    bool isChoosen = false;
     pair<int, int> coord;
 
     creature(){
@@ -363,8 +360,7 @@ struct creature{
         // Set coordinates
         coord.first = row;
         coord.second = col;
-
-        brain.setPTR(coord);        
+        brain.setPTR(coord);   
     }
 
     void reproduceWith(creature &A){
@@ -416,6 +412,15 @@ struct creature{
     void printNeuronConnections() const {
         cout << endl << BLUE_TEXT << setw(20) << left << "Creature:" << setw(20) << left << this << RESET_TEXT << endl;
         brain.printNeuronConnections();
+    }
+
+    void print() const {
+        cout << BLUE_TEXT << "Creature:\t\t" << this << RESET_TEXT << endl;
+        cout << "Color:\t\t\t" << color << endl;
+        cout << "Coordinates:\t\t" << coord.first << ", " << coord.second << endl;
+        brain.printNeuronConnections();
+
+        cout << endl;
     }
 
     ~creature(){}
