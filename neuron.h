@@ -79,11 +79,7 @@ struct neuron{
     void conditionallyDo() {
         // If output is positive do the action
         if(output > 0){
-            if(owner != nullptr){reportAction(true);}
             unconditionallyDo();
-        }
-        else{
-            if(owner != nullptr){reportAction(false);}
         }
     }    
     
@@ -95,13 +91,6 @@ struct neuron{
     inline void reset(){
         accumulation = 0.0; 
         output = 0.0;
-    }
-
-    inline void reportAction(bool isActivated) const {
-        // isActivated ? cout << GREEN_TEXT << typeid(*this).name() << " activated!" << RESET_TEXT : cout << RED_TEXT << typeid(*this).name() << " not activated!" << RESET_TEXT;
-        if(isActivated){cout << GREEN_TEXT << setw(20) << typeid(*this).name() << count3++ << RESET_TEXT;}
-        else{cout << RED_TEXT << setw(20) << typeid(*this).name() << RESET_TEXT;}
-        cout << "\t\tOutput: " << output << endl;
     }
 
     inline void calculateOutput(){
@@ -173,8 +162,8 @@ struct rightEye: neuron{
 struct topEye: neuron{
     double getOutput() const override {
         // If there is a creature above the current creature return 1.0, else return 0.0
-        if(isOutOfBounds(coord->first+1, coord->second)){return -1.0;}                               // If there is a wall
-        if(isOccupied(coord->first+1, coord->second)){return 1.0;}      // If there is a creature
+        if(isOutOfBounds(coord->first-1, coord->second)){return -1.0;}                               // If there is a wall
+        if(isOccupied(coord->first-1, coord->second)){return 1.0;}      // If there is a creature
         return 0.0;
     }
 
@@ -184,8 +173,8 @@ struct topEye: neuron{
 struct bottomEye: neuron{
     double getOutput() const override {
         // If there is a creature below the current creature return 1.0, else return 0.0
-        if(isOutOfBounds(coord->first-1, coord->second)){return -1.0;}                               // If there is a wall
-        if(isOccupied(coord->first-1, coord->second)){return 1.0;}      // If there is a creature
+        if(isOutOfBounds(coord->first+1, coord->second)){return -1.0;}                               // If there is a wall
+        if(isOccupied(coord->first+1, coord->second)){return 1.0;}      // If there is a creature
         return 0.0;
     }
 

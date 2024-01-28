@@ -242,7 +242,6 @@ struct NN{
     inline void fire(){
         for(int i=0; i < NumberOfNeuronTypes; nonInnerNeurons[i++]->conditionallyDo());
         for(int i=0; i < maxInnerNeuron; innerNeurons[i++]->conditionallyDo());
-        if(*isChoosen){cout << "Count: " << count2++ << endl;}
     }
 
     void action(){
@@ -253,7 +252,6 @@ struct NN{
 
     void printNeuronConnections() const {
         
-        cout << string(80, '-') << endl;
         cout << YELLOW_TEXT;
         cout << setw(20) << left << "Source"
         << setw(20) << left << "Destination"
@@ -261,16 +259,22 @@ struct NN{
         << setw(20) << left << "Output"
         << endl;
         cout << RESET_TEXT;
+        cout << string(80, '-') << endl;
 
+        // Print all neuron connections
         for(int i=0; i < maxConnection; i++){
-            // cout << maxConnection << " - " << i << " - " << NumberOfNeuronTypes << " - " << maxInnerNeuron << endl;
             pair<bool, unsigned int> SOURCE = DNA[i].getSource();
             pair<bool, unsigned int> DESTINATION = DNA[i].getDestination();
+
+            if(getNeuron(SOURCE)->getOutput() == 1.0){cout << BLUE_TEXT;}
+            else if(getNeuron(SOURCE)->getOutput() > 0){cout << GREEN_TEXT;}
+            else if(getNeuron(SOURCE)->getOutput() == -1.0){cout << RED_TEXT;}
+
             cout << setw(20) << left << typeid(*getNeuron(SOURCE)).name() 
             << setw(20) << left << typeid(*getNeuron(DESTINATION)).name() 
             << setw(20) << left << DNA[i].getWeight()
-            << setw(20) << left << setprecision(10) << getNeuron(SOURCE)->getOutput(); // Set the precision to 10
-            cout << endl;
+            << setw(20) << left << setprecision(10) << getNeuron(SOURCE)->getOutput();
+            cout << RESET_TEXT << endl;
         }
         cout << string(80, '-') << endl;
     }

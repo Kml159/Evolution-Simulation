@@ -3,7 +3,7 @@
 
 using namespace std;
 
-#define pop 0.1         // Population density
+#define pop 0.01         // Population density
 #define stepTime 200   // FPS by milisecond
 
 struct dummy{
@@ -26,6 +26,7 @@ class table{
         vector<creature*> creatures;
         unsigned int populationSize;
         creature* randomCreature;
+        unsigned int iteration = 1;
 
         void randomize(){
             for(int i=0; i < creatures.size(); creatures.at(i++)->randomize());
@@ -63,9 +64,10 @@ class table{
             cout << string(mat.at(0).size() + 2 + (mat.at(0).size() + 1) * gap, '|') << endl;
         }
 
-        void printInfo() const {
+        void printInfo() {
             cout << "\tPopulation Size:\t" << populationSize << endl;
-            cout << "\tCapacity:\t\t" << mat.size()*mat.at(0).size() << endl << endl;
+            cout << "\tCapacity:\t\t" << mat.size()*mat.at(0).size() << endl;
+            cout << "\tIteration:\t\t" << iteration++ << endl << endl;
         }
 
         void clearScreen() const {cout << "\033[H\033[J";}
