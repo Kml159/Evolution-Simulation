@@ -243,6 +243,7 @@ struct NN{
         clearNeurons();
         decodeGenomesAndSendInputs();
         fire();
+
     }
 
     void printNeuronConnections() const {

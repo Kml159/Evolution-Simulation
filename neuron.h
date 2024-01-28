@@ -124,7 +124,7 @@ struct neuron{
         return false;
     }
 
-    inline virtual double getOutput() const {return output;}
+    inline virtual double getOutput() const {return output;}  // PROBLEM HEREEEEEEE ----------- !!!!!!!!
 
     inline void print() const {
         cout << CYAN_TEXT << "Neuron:\t\t\t" << this << RESET_TEXT << endl;
@@ -141,7 +141,7 @@ struct neuron{
 struct leftEye: neuron{       
     double getOutput() const override {
         // If there is a creature left of the current creature return 1.0, else return 0.0
-        if(isOutOfBounds()){return -1.0;}                               // If there is a wall
+        if(isOutOfBounds(coord->first, coord->second-1)){return -1.0;}                               // If there is a wall
         if(isOccupied(coord->first, coord->second-1)){return 1.0;}      // If there is a creature
         return 0.0;
     }
@@ -154,7 +154,7 @@ struct rightEye: neuron{
 
     double getOutput() const override {
         // If there is a creature right of the current creature return 1.0, else return 0.0
-        if(isOutOfBounds()){return -1.0;}                               // If there is a wall
+        if(isOutOfBounds(coord->first, coord->second+1)){return -1.0;}                               // If there is a wall
         if(isOccupied(coord->first, coord->second+1)){return 1.0;}      // If there is a creature
         return 0.0;
     }
@@ -165,7 +165,7 @@ struct rightEye: neuron{
 struct topEye: neuron{
     double getOutput() const override {
         // If there is a creature above the current creature return 1.0, else return 0.0
-        if(isOutOfBounds()){return -1.0;}                               // If there is a wall
+        if(isOutOfBounds(coord->first+1, coord->second)){return -1.0;}                               // If there is a wall
         if(isOccupied(coord->first+1, coord->second)){return 1.0;}      // If there is a creature
         return 0.0;
     }
@@ -176,7 +176,7 @@ struct topEye: neuron{
 struct bottomEye: neuron{
     double getOutput() const override {
         // If there is a creature below the current creature return 1.0, else return 0.0
-        if(isOutOfBounds()){return -1.0;}                               // If there is a wall
+        if(isOutOfBounds(coord->first-1, coord->second)){return -1.0;}                               // If there is a wall
         if(isOccupied(coord->first-1, coord->second)){return 1.0;}      // If there is a creature
         return 0.0;
     }
