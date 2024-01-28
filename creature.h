@@ -7,6 +7,8 @@ static const int ID_SIZE = 7;
 static const int WEIGHT_SIZE = 32;     
 static const int DNA_SIZE = (1+ID_SIZE)*2 + WEIGHT_SIZE;
 
+int count2 = 0;
+
 struct genome{
 
     // Genome is a string of 0's and 1's randomly string
@@ -111,7 +113,8 @@ struct NN{
     neuron* innerNeurons[maxInnerNeuron];               // Inner neurons are created dynamically
     genome DNA[maxConnection];                          // DNA of the creature
     pair<int, int> *coord;                              // Pointer to the coordinates of the creature
-    
+    bool* isChoosen;
+
     /*
         nonInnerNeurons:    0~3: Input Neurons
                             4~7: Muscle Neurons
@@ -147,12 +150,14 @@ struct NN{
         for(int i=0; i < maxInnerNeuron; innerNeurons[i++]->owner = owner);
     }
 
-    void setPTR(pair<int, int> &coord){
+    void setPTR(pair<int, int> &coord, bool* isChoosen){
         this->coord = &coord;
 
         // Set pointer to coord for all neurons
         for(int i=0; i < NumberOfNeuronTypes; nonInnerNeurons[i++]->setPTR(coord));
         for(int i=0; i < maxInnerNeuron; innerNeurons[i++]->setPTR(coord));
+
+        this->isChoosen = isChoosen;
     }
 
     neuron* createNonInnerNeuron(NeuronTypes type) {
@@ -237,13 +242,13 @@ struct NN{
     inline void fire(){
         for(int i=0; i < NumberOfNeuronTypes; nonInnerNeurons[i++]->conditionallyDo());
         for(int i=0; i < maxInnerNeuron; innerNeurons[i++]->conditionallyDo());
+        if(*isChoosen){cout << "Count: " << count2++ << endl;}
     }
 
     void action(){
         clearNeurons();
         decodeGenomesAndSendInputs();
         fire();
-
     }
 
     void printNeuronConnections() const {
@@ -335,7 +340,7 @@ struct NN{
 struct creature{
 
     NN brain;
-    static const char symbol = 'o';
+    char symbol = 'o';
     string color;
     bool isChoosen = false;
     pair<int, int> coord;
@@ -365,7 +370,7 @@ struct creature{
         // Set coordinates
         coord.first = row;
         coord.second = col;
-        brain.setPTR(coord);   
+        brain.setPTR(coord, &isChoosen);   
     }
 
     void reproduceWith(creature &A){

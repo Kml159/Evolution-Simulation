@@ -34,6 +34,10 @@
 
 using namespace std;
 
+int count3 = 0;
+int count4 = 0;
+int count5 = 0;
+
 // Define an enum named Operation
 enum class Action {
     UP,

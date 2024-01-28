@@ -3,7 +3,7 @@
 
 using namespace std;
 
-#define pop 0.01
+#define pop 0.1         // Population density
 #define stepTime 200   // FPS by milisecond
 
 struct dummy{
@@ -23,7 +23,7 @@ class table{
     private:
 
         vector<vector<creature*>> mat;
-        vector<creature*> creatures;        // USE THIS LATER !!!
+        vector<creature*> creatures;
         unsigned int populationSize;
         creature* randomCreature;
 
@@ -112,6 +112,8 @@ class table{
             this->randomCreature = creatures.at(getRandom(0, creatures.size()-1));
             this->randomCreature->isChoosen = true;
             this->randomCreature->setCreature();
+            this->randomCreature->symbol = 'X';
+            this->randomCreature->color = BOLD_WHITE_TEXT;
         }
 
         table(vector<vector<creature*>> &mat){this->mat = mat;}

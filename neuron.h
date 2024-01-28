@@ -41,6 +41,15 @@ enum class NeuronTypes{
 
 const static unsigned int NumberOfNeuronTypes = (int)(NeuronTypes::KILL)+1;
 
+/*
+
+    To Do's:
+
+    - When go right and go left neurons have higher than 0.0 output, bigger one will be chosen !!!!!!!
+    - Muslce neurons only fires in first step, FIX THIS !!!!!!!!!!!!!!!!!!
+*/
+
+
 struct neuron{
     
     double bias;
@@ -67,7 +76,6 @@ struct neuron{
 
     void setPTR(pair<int, int> &coord){this->coord = &coord;}
     
-    // Pure virtual functions, must be implemented in derived classes
     void conditionallyDo() {
         // If output is positive do the action
         if(output > 0){
@@ -91,7 +99,7 @@ struct neuron{
 
     inline void reportAction(bool isActivated) const {
         // isActivated ? cout << GREEN_TEXT << typeid(*this).name() << " activated!" << RESET_TEXT : cout << RED_TEXT << typeid(*this).name() << " not activated!" << RESET_TEXT;
-        if(isActivated){cout << GREEN_TEXT << setw(20) << typeid(*this).name() << RESET_TEXT;}
+        if(isActivated){cout << GREEN_TEXT << setw(20) << typeid(*this).name() << count3++ << RESET_TEXT;}
         else{cout << RED_TEXT << setw(20) << typeid(*this).name() << RESET_TEXT;}
         cout << "\t\tOutput: " << output << endl;
     }
@@ -192,6 +200,7 @@ struct goLeft: neuron{
         int col = coord->second - 1;
         if(isOutOfBounds(row, col) || isOccupied(row, col)){return;}                                // If there is a wall or a creature, do nothing
         swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(row).at(col));    // Swap to the left, so it moves.
+        coord->second--;                                                                            // Update the coordinates
     }
 };
 
@@ -202,6 +211,7 @@ struct goRight: neuron{
         int col = coord->second + 1;
         if(isOutOfBounds(row, col) || isOccupied(row, col)){return;}
         swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(row).at(col)); // Swap to the right, so it moves.
+        coord->second++;                                                                            // Update the coordinates
     }
 };
 
@@ -212,6 +222,7 @@ struct goUp: neuron{
         int col = coord->second;
         if(isOutOfBounds(row, col) || isOccupied(row, col)){return;}
         swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(row).at(col)); // Swap to the top, so it moves.
+        coord->first--;                                                                            // Update the coordinates
     }
 };
 
@@ -222,6 +233,7 @@ struct goDown: neuron{
         int col = coord->second;
         if(isOutOfBounds(row, col) || isOccupied(row, col)){return;}
         swap(creatureTable->at(coord->first).at(coord->second), creatureTable->at(row).at(col)); // Swap to the bottom, so it moves.
+        coord->first++;                                                                            // Update the coordinates
     }
 };
 
