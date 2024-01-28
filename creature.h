@@ -3,9 +3,12 @@
 
 using namespace std;
 
+// !!! DO NOT CHANGE THIS !!!
 static const int ID_SIZE = 7;          
 static const int WEIGHT_SIZE = 32;     
 static const int DNA_SIZE = (1+ID_SIZE)*2 + WEIGHT_SIZE;
+// !!! DO NOT CHANGE THIS !!!
+
 
 int count2 = 0;
 
@@ -252,6 +255,7 @@ struct NN{
 
     void printNeuronConnections() const {
         
+        cout << string(80, '-') << endl;
         cout << YELLOW_TEXT;
         cout << setw(20) << left << "Source"
         << setw(20) << left << "Destination"
@@ -259,7 +263,6 @@ struct NN{
         << setw(20) << left << "Output"
         << endl;
         cout << RESET_TEXT;
-        cout << string(80, '-') << endl;
 
         // Print all neuron connections
         for(int i=0; i < maxConnection; i++){
@@ -425,6 +428,11 @@ struct creature{
 
     void printNeuronConnections() const {
         cout << endl << BLUE_TEXT << setw(20) << left << "Creature:" << setw(20) << left << this << RESET_TEXT << endl;
+        // Print coordinates
+        cout << setw(20) << left << "Coordinates (RXC):" << coord.first << " X " << coord.second 
+        // Print all table size
+        << "\t\tTable Size: " << creatureTable->size() << " X " << creatureTable->at(0).size() << RESET_TEXT
+        << endl;
         brain.printNeuronConnections();
     }
 

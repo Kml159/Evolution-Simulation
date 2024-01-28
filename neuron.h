@@ -4,7 +4,7 @@
 using namespace std;
 
 // Forward declaration
-#define maxConnection 16
+#define maxConnection 26
 #define maxInnerNeuron 2
 #define genomeLength 100
 
@@ -110,7 +110,11 @@ struct neuron{
     bool isOutOfBounds(int row, int col) const {
         // Check if the given coordinates are out of bounds
         if(creatureTable == nullptr){throw invalid_argument("creatureTable is nullptr!");} 
-        else if(row > creatureTable->size()-1 || row < 0 || col > creatureTable->at(0).size()-1 || col < 0){return true;}
+        else if(row > creatureTable->size()-1 || row < 0 || col > creatureTable->at(0).size()-1 || col < 0){
+            // cout << "col: " << col << "\tcreatureTable->at(0).size()-1: " << creatureTable->at(0).size()-1 << endl;
+
+            return true;
+        }
         return false; 
     }
 
@@ -121,7 +125,7 @@ struct neuron{
         return false;
     }
 
-    inline virtual double getOutput() const {return output;}  // PROBLEM HEREEEEEEE ----------- !!!!!!!!
+    inline virtual double getOutput() const {return output;}
 
     inline void print() const {
         cout << CYAN_TEXT << "Neuron:\t\t\t" << this << RESET_TEXT << endl;

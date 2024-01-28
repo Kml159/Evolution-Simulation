@@ -41,28 +41,27 @@ class table{
             */
         }
 
-        void print() const {
+        void print() const { // LAST COLUMN IS WRONGLY PRINTED !!!!!!!!!!!!
             // Print whole board
             short gap = 2;
             if (mat.empty() || mat.at(0).empty()) {
                 throw invalid_argument("Matrix does not exist!\nCannot print.");
             }
 
-            cout << string(mat.at(0).size() + 2 + (mat.at(0).size() + 1) * gap, '|') << endl;
+            cout << string(mat[0].size()*(gap+1) + 2, '|') << endl;
             for (int i = 0; i < mat.size(); i++) {
                 cout << "| ";
                 for (int j = 0; j < mat.at(0).size(); j++) {
-                    if (mat.at(i).at(j) == nullptr) {
-                        cout << setw(gap) << " ";
-                    } else {
-                        cout << mat.at(i).at(j)->color << setw(gap) << mat.at(i).at(j)->symbol << RESET_TEXT;
-                    }
-                    cout << " ";
+                    if (mat.at(i).at(j) == nullptr) {cout << setw(gap) << " ";} 
+                    else {cout << mat.at(i).at(j)->color << setw(gap) << mat.at(i).at(j)->symbol << RESET_TEXT;}
+                    if(j != mat.at(0).size()-1){cout << " ";}
                 }
-                cout << " |" << endl;
+                cout << "|" << endl;
             }
-            cout << string(mat.at(0).size() + 2 + (mat.at(0).size() + 1) * gap, '|') << endl;
+            cout << string(mat[0].size()*(gap+1) + 2, '|') << endl;
         }
+
+        
 
         void printInfo() {
             cout << "\tPopulation Size:\t" << populationSize << endl;
