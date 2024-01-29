@@ -85,6 +85,7 @@ struct genome{
             doneIndex += size;
         }
 
+
         return child;
     }
 
@@ -412,7 +413,7 @@ struct creature{
         brain.setPTR(coord, &isChoosen);   
     }
 
-    inline creature* reproduceWith(creature* other){
+    creature* reproduceWith(creature* other){
         /*
             HOW TO REPRODUCE:
 

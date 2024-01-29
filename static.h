@@ -97,7 +97,14 @@ unsigned int stringToUnsigned(const string& str, int start, int size) {
     unsigned int result = 0;
     if (start < 0) {throw invalid_argument("Cannot convert string to unsigned, start is negative!");}
     if (size < 0) {throw invalid_argument("Cannot convert string to unsigned, size is negative!");}
-    if (start + size > str.size()) {throw invalid_argument("Cannot convert string to unsigned, start + size is greater than string size!");}
+    if (start + size > str.size()) {
+        cout << RED_TEXT << endl;
+        cerr << "start: " << start << " - ";
+        cerr << "size: " << size << " - ";
+        cerr << "str.size(): " << str.size() << endl;
+        throw invalid_argument("Cannot convert string to unsigned, start + size is greater than string size!");
+        cout << RESET_TEXT;
+    }
     for (int i = start; i < start + size; i++) {
         if (str[i] == '1') {
             result += static_cast<unsigned int>(pow(2, start + size - 1 - i));

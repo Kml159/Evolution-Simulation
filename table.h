@@ -3,8 +3,8 @@
 
 using namespace std;
 
-#define pop 0.1         // Population density
-#define sleep 100       // Miliseconds to sleep
+#define pop 0.01         // Population density
+#define sleep 10       // Miliseconds to sleep
 
 struct dummy{
     char symbol;
@@ -40,6 +40,7 @@ class table{
         unsigned int populationSize;
         creature* randomCreature;
         unsigned int iteration = 1;
+        unsigned int generationNumber = 1;
 
         vector<creature*> reproducers;
 
@@ -79,7 +80,8 @@ class table{
         void printInfo() {
             cout << "\tPopulation Size:\t" << populationSize << endl;
             cout << "\tCapacity:\t\t" << mat.size()*mat.at(0).size() << endl;
-            cout << "\tIteration:\t\t" << iteration++ << endl << endl;
+            cout << "\tIteration:\t\t" << iteration++ << endl;
+            cout << "\tGeneration:\t\t" << generationNumber << endl << endl;
         }
 
         void clearScreen() const {cout << "\033[H\033[J";}
@@ -289,8 +291,13 @@ class table{
         }
 
         inline void reproduce(){
-            // Reproduce creatures
-            vector<creature*> nextGeneration;
+
+            // Set matrix to nullptr
+            for(int i=0; i < mat.size(); i++){
+                for(int j=0; j < mat.at(0).size(); j++){
+                    mat.at(i).at(j) = nullptr;
+                }
+            }
             
             // Shuffle the reproducers
             random_device rd;
@@ -300,8 +307,11 @@ class table{
             // Set population counter to 0
             populationSize = 0;
 
+            bool flag = true;
+
             // Reproduce in pairs
             for(int i=0; i < reproducers.size(); i+=2){
+
                 creature* A = reproducers.at(i);
                 creature* B = reproducers.at(i+1);
 
@@ -311,11 +321,18 @@ class table{
                 creature* C = A->reproduceWith(B);
                 creature* D = B->reproduceWith(A);
 
+                if(flag){   // Select individual to monitor
+                    this->randomCreature = C;
+                    this->randomCreature->isChoosen = true;
+                    this->randomCreature->setCreature();
+                    this->randomCreature->symbol = 'X';
+                    this->randomCreature->color = BOLD_WHITE_TEXT;
+                    flag = false;
+                }
+
                 // Delete the parents
                 delete A;
-                A = nullptr;
                 delete B;
-                B = nullptr;
 
                 // Add the children to the next generation
                 putCreature(C);
@@ -323,11 +340,8 @@ class table{
 
                 populationSize += 2;
             }
-
-            // Clear creatures and mat
-            creatures.clear();
-
-
+            
+            reproducers.clear();
         }
 
         inline bool isValid(int row, int col) {
@@ -363,8 +377,10 @@ class table{
                     this_thread::sleep_for(chrono::milliseconds(sleep)); // THIS DOES NOT WORK ON WINDOWS
                 }
                 clearScreen();
-                chooseReproducers(RIGHT);
+                chooseReproducers(ALL);
                 reproduce();
+                iteration = 1;
+                generationNumber++;
             }
         }
 
