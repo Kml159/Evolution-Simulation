@@ -22,17 +22,14 @@ int main(){
 
     srand(static_cast<unsigned>(time(nullptr)));
     
-    genome A;
-    cout << "A: ";
-    A.printCode();
+    creature A;
+    creature B;
 
-    genome B;
-    cout << "B: ";
-    B.printCode();
+    A.printDNA();
+    B.printDNA();
 
-    genome C = A.crossoverWith(B);
-    cout << "C: ";
-    C.printCode();
+    creature* C = A.reproduceWith(&B);
+    C->printDNA();
 
     return 0;
 }

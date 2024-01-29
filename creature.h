@@ -313,54 +313,6 @@ struct NN{
         cout << string(80, '-') << endl;
     }
 
-
-    /*
-    void initNeurons(){
-        // Connect neurons based on DNA
-        for(int i=0; i < maxConnection; i++){
-            auto SOURCE = DNA[i].getSource();
-            auto DESTINATION = DNA[i].getDestination();
-
-            if(SOURCE.first == true){
-                NeuronTypes type = static_cast<NeuronTypes>(SOURCE.second%NumberOfNeuronTypes);
-                // Input Neuron
-                switch (type){
-                    case NeuronTypes::LEFT_EYE:
-                        // code
-                        break;
-                    case NeuronTypes::RIGHT_EYE:
-                        // code
-                        break;
-                    case NeuronTypes::TOP_EYE:
-                        // code
-                        break;
-                    case NeuronTypes::BOTTOM_EYE:
-                        // code
-                        break;
-                    case NeuronTypes::GO_LEFT:
-                        // code
-                        break;
-                    case NeuronTypes::GO_RIGHT:
-                        // code
-                        break;
-                    case NeuronTypes::GO_UP:
-                        break;
-                    case NeuronTypes::GO_DOWN:
-                        break;
-                    case NeuronTypes::KILL:
-                        break;
-                    default:
-                        throw invalid_argument("Source neuron type is incorrect!");
-                        break;
-                    }
-            }
-            else if(SOURCE.first == false){
-                // Create INNER NEURON
-                
-            }
-        }
-    }*/
-
     void printDNA() const {
         for(int i=0; i < maxConnection; i++){
             // cout << "Genome:\t\t\t" << i << endl;
@@ -434,7 +386,7 @@ struct creature{
         */
 
         creature* child = new creature();
-
+        
         // Crossover
         for(int i=0; i < maxConnection; i++){
             child->brain.DNA[i] = this->brain.DNA[i].crossoverWith(other->brain.DNA[i]);
@@ -444,9 +396,6 @@ struct creature{
         for(int i=0; i < maxConnection; i++){
             child->brain.DNA[i].mutation();
         }
-
-        // Set child's coordinates randomly
-        // !!!!!! initCoordinates(getRandom(0, creatureTable->size()-1), getRandom(0, creatureTable->at(0).size()-1));
 
         return child;
     }

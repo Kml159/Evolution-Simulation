@@ -85,6 +85,7 @@ struct neuron{
     inline void accumulateInput(const double input){accumulation += input;}
     
     inline void reset(){
+        if(this == nullptr){throw invalid_argument("Neuron does not exist!");}
         accumulation = 0.0; 
         output = 0.0;
     }

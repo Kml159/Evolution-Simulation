@@ -3,8 +3,7 @@
 
 using namespace std;
 
-#define pop 0.01         // Population density
-#define sleep 10       // Miliseconds to sleep
+#define pop 0.1         // Population density
 
 struct dummy{
     char symbol;
@@ -125,7 +124,7 @@ class table{
             creatureTable = &mat;
 
             // Initialize matrix with given row and col numbers
-             mat.resize(row, vector<creature*>(col, nullptr));
+            mat.resize(row, vector<creature*>(col, nullptr));
 
             // Constructor
             if(row*col < individualNumber){throw invalid_argument("individualNumber is invalid!");};
@@ -305,7 +304,11 @@ class table{
 
             bool flag = true; 
 
-            if(reproducers.size() % 2 != 0){reproducers.pop_back();}
+            // If there is an odd number of reproducers, might cause problems (lesser cretures in nextgen) FIX THIS !!!
+            if(reproducers.size() % 2 != 0){reproducers.pop_back();} 
+
+            // Clear the cretures vector
+            creatures.clear();
 
             // Reproduce in pairs
             for(int i=0; i < reproducers.size(); i+=2){
@@ -337,13 +340,6 @@ class table{
                 putCreature(D);
 
                 populationSize += 2;
-
-                // Print the details of the children
-                cout << "Child 1: " << C->color << C->symbol << RESET_TEXT << endl;
-                cout << "Child 2: " << D->color << D->symbol << RESET_TEXT << endl;
-
-                cout << i << " - " << reproducers.size() << endl;
-                
             }
             
             reproducers.clear();
@@ -372,7 +368,7 @@ class table{
             randomCreature->printNeuronConnections();
         }
 
-        inline void screen(int loop, int generation){
+        inline void screen(int loop, int generation, int sleep){
             clearScreen();
             if(mat.empty() || mat[0].empty()){throw invalid_argument("Matrix does not exist!\nCannot print.");}
 
@@ -381,7 +377,6 @@ class table{
                     screen();
                     this_thread::sleep_for(chrono::milliseconds(sleep)); // THIS DOES NOT WORK ON WINDOWS
                 }
-                clearScreen();
                 chooseReproducers(ALL);
                 reproduce();
                 iteration = 1;
