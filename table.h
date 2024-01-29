@@ -230,12 +230,8 @@ class table{
 
                 case ALL:
                     // All of the screen will reproduce
-                    for(int i=0; i < mat.size(); i++){
-                        for(int j=0; j < mat.at(0).size(); j++){
-                            if(mat.at(i).at(j) != nullptr){
-                                reproducers.push_back(mat.at(i).at(j));
-                            }
-                        }
+                    for(int i=0; i < creatures.size(); i++){
+                        reproducers.push_back(creatures.at(i));
                     }
                     break;
                 
@@ -307,7 +303,9 @@ class table{
             // Set population counter to 0
             populationSize = 0;
 
-            bool flag = true;
+            bool flag = true; 
+
+            if(reproducers.size() % 2 != 0){reproducers.pop_back();}
 
             // Reproduce in pairs
             for(int i=0; i < reproducers.size(); i+=2){
@@ -339,6 +337,13 @@ class table{
                 putCreature(D);
 
                 populationSize += 2;
+
+                // Print the details of the children
+                cout << "Child 1: " << C->color << C->symbol << RESET_TEXT << endl;
+                cout << "Child 2: " << D->color << D->symbol << RESET_TEXT << endl;
+
+                cout << i << " - " << reproducers.size() << endl;
+                
             }
             
             reproducers.clear();
