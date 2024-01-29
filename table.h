@@ -36,11 +36,11 @@ class table{
 
         vector<vector<creature*>> mat;
         vector<creature*> creatures;
-        unsigned int populationSize;
+        vector<creature*> reproducers;
         creature* randomCreature;
+        unsigned int populationSize;
         unsigned int iteration = 1;
         unsigned int generationNumber = 1;
-        vector<creature*> reproducers;
 
         static const Reproduce SELECTION = BOTTOM;
 
