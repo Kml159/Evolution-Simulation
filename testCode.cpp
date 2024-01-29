@@ -13,9 +13,9 @@ using namespace std;
 int main(){
 
     srand(static_cast<unsigned>(time(nullptr)));
-    table A(10, 20, 40);
+    table A(20, 50, 90);
 
-    A.screen(60, 60, 25);   
+    A.screen(100, 60, 10);   
 
     return 0;
 }

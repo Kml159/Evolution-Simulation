@@ -3,7 +3,7 @@
 
 using namespace std;
 
-#define pop 0.1         // Population density
+#define pop 0.4         // Population density
 
 struct dummy{
     char symbol;
@@ -40,8 +40,9 @@ class table{
         creature* randomCreature;
         unsigned int iteration = 1;
         unsigned int generationNumber = 1;
-
         vector<creature*> reproducers;
+
+        static const Reproduce SELECTION = BOTTOM;
 
         void randomize(){
             for(int i=0; i < creatures.size(); creatures.at(i++)->randomize());
@@ -115,43 +116,88 @@ class table{
             mat.at(row).at(col) = A;
             populationSize++;
         }
-
-    public:
-
-        table(unsigned int const individualNumber, unsigned int const row, unsigned int const col){
-
-            // Initialize pointer to creatureTable
-            creatureTable = &mat;
-
-            // Initialize matrix with given row and col numbers
-            mat.resize(row, vector<creature*>(col, nullptr));
-
-            // Constructor
-            if(row*col < individualNumber){throw invalid_argument("individualNumber is invalid!");};
-            populationSize = 0;
-            for(int i=0; i < row; i++){
-                for(int j=0; j < col; j++){
-                    // If possiblitly is met put a random creature in the matrix
-                    if(pop * 100 >= getRandom(1, 100)){
-                        putRandomCreature();
-                    }
-                }
-            }
-
-            // Select a random creature
-            this->randomCreature = creatures.at(getRandom(0, creatures.size()-1));
-            this->randomCreature->isChoosen = true;
-            this->randomCreature->setCreature();
-            this->randomCreature->symbol = 'X';
-            this->randomCreature->color = BOLD_WHITE_TEXT;
+    
+        inline void update(){
+            for(int i=0; i < creatures.size(); creatures.at(i++)->action());
         }
 
-        table(vector<vector<creature*>> &mat){this->mat = mat;}
+        inline void reproduce(){
 
-        table(table &table){
-            // Copy Constructor
-            this->mat = table.mat;
-            this->populationSize = table.populationSize;
+            // Set matrix to nullptr
+            for(int i=0; i < mat.size(); i++){
+                for(int j=0; j < mat.at(0).size(); j++){
+                    mat.at(i).at(j) = nullptr;
+                }
+            }
+            
+            // Shuffle the reproducers
+            random_device rd;
+            mt19937 g(rd());
+            shuffle(reproducers.begin(), reproducers.end(), g);
+
+            // Set population counter to 0
+            populationSize = 0;
+
+            bool flag = true; 
+
+            // If there is an odd number of reproducers, might cause problems (lesser cretures in nextgen) FIX THIS !!!
+            if(reproducers.size() % 2 != 0){reproducers.pop_back();} 
+
+            // Clear the cretures vector
+            creatures.clear();
+
+            // Reproduce in pairs
+            for(int i=0; i < reproducers.size(); i+=2){
+
+                creature* A = reproducers.at(i);
+                creature* B = reproducers.at(i+1);
+
+                if(A == nullptr || B == nullptr){throw invalid_argument("Cannot reproduce, one of the creatures is nullptr!");}
+
+                // Create a new creature every 2 parents will create 2 children
+                creature* C = A->reproduceWith(B);
+                creature* D = B->reproduceWith(A);
+
+                if(flag){   // Select individual to monitor
+                    this->randomCreature = C;
+                    this->randomCreature->isChoosen = true;
+                    this->randomCreature->setCreature();
+                    this->randomCreature->symbol = 'X';
+                    this->randomCreature->color = BOLD_WHITE_TEXT;
+                    flag = false;
+                }
+
+                // Delete the parents
+                delete A;
+                delete B;
+
+                // Add the children to the next generation
+                putCreature(C);
+                putCreature(D);
+
+                populationSize += 2;
+            }
+            
+            reproducers.clear();
+        }
+
+        inline void screen(){
+            clearScreen();                
+            printInfo();
+            print();
+            update();
+            // randomCreature->printNeuronConnections();
+        }
+
+        inline bool isValid(int row, int col) {
+            // Check if the given coordinates are valid
+            if (row < 0 || row >= mat.size() || col < 0 || col >= mat.at(0).size()) {
+                return false; // index out of range
+            }
+            if (mat.at(row).at(col) != nullptr) {
+                return false; // not empty
+            }
+            return true;
         }
 
         inline void chooseReproducers(const Reproduce where){
@@ -215,6 +261,7 @@ class table{
 
                 case CORNERS:
                     // Corners of the screen will reproduce
+
                     for(int i=0; i < mat.size(); i++){
                         for(int j=0; j < mat.at(0).size(); j++){
                             if(mat.at(i).at(j) != nullptr){
@@ -285,100 +332,67 @@ class table{
             }
         }
 
-        inline void reproduce(){
+    public:
 
-            // Set matrix to nullptr
-            for(int i=0; i < mat.size(); i++){
-                for(int j=0; j < mat.at(0).size(); j++){
-                    mat.at(i).at(j) = nullptr;
-                }
-            }
-            
-            // Shuffle the reproducers
-            random_device rd;
-            mt19937 g(rd());
-            shuffle(reproducers.begin(), reproducers.end(), g);
+        table(unsigned int const individualNumber, unsigned int const row, unsigned int const col){
 
-            // Set population counter to 0
+            // Initialize pointer to creatureTable
+            creatureTable = &mat;
+
+            // Initialize matrix with given row and col numbers
+            mat.resize(row, vector<creature*>(col, nullptr));
+
+            // Constructor
+            if(row*col < individualNumber){throw invalid_argument("individualNumber is invalid!");};
             populationSize = 0;
-
-            bool flag = true; 
-
-            // If there is an odd number of reproducers, might cause problems (lesser cretures in nextgen) FIX THIS !!!
-            if(reproducers.size() % 2 != 0){reproducers.pop_back();} 
-
-            // Clear the cretures vector
-            creatures.clear();
-
-            // Reproduce in pairs
-            for(int i=0; i < reproducers.size(); i+=2){
-
-                creature* A = reproducers.at(i);
-                creature* B = reproducers.at(i+1);
-
-                if(A == nullptr || B == nullptr){throw invalid_argument("Cannot reproduce, one of the creatures is nullptr!");}
-
-                // Create a new creature every 2 parents will create 2 children
-                creature* C = A->reproduceWith(B);
-                creature* D = B->reproduceWith(A);
-
-                if(flag){   // Select individual to monitor
-                    this->randomCreature = C;
-                    this->randomCreature->isChoosen = true;
-                    this->randomCreature->setCreature();
-                    this->randomCreature->symbol = 'X';
-                    this->randomCreature->color = BOLD_WHITE_TEXT;
-                    flag = false;
+            for(int i=0; i < row; i++){
+                for(int j=0; j < col; j++){
+                    // If possiblitly is met put a random creature in the matrix
+                    if(pop * 100 >= getRandom(1, 100)){
+                        putRandomCreature();
+                    }
                 }
-
-                // Delete the parents
-                delete A;
-                delete B;
-
-                // Add the children to the next generation
-                putCreature(C);
-                putCreature(D);
-
-                populationSize += 2;
             }
-            
-            reproducers.clear();
+
+            // Select a random creature
+            this->randomCreature = creatures.at(getRandom(0, creatures.size()-1));
+            this->randomCreature->isChoosen = true;
+            this->randomCreature->setCreature();
+            this->randomCreature->symbol = 'X';
+            this->randomCreature->color = BOLD_WHITE_TEXT;
         }
 
-        inline bool isValid(int row, int col) {
-            // Check if the given coordinates are valid
-            if (row < 0 || row >= mat.size() || col < 0 || col >= mat.at(0).size()) {
-                return false; // index out of range
-            }
-            if (mat.at(row).at(col) != nullptr) {
-                return false; // not empty
-            }
-            return true;
-        }
+        table(vector<vector<creature*>> &mat){this->mat = mat;}
 
-        inline void update(){
-            for(int i=0; i < creatures.size(); creatures.at(i++)->action());
-        }
-
-        inline void screen(){
-            clearScreen();                
-            printInfo();
-            print();
-            update();
-            randomCreature->printNeuronConnections();
+        table(table &table){
+            // Copy Constructor
+            this->mat = table.mat;
+            this->populationSize = table.populationSize;
         }
 
         inline void screen(int loop, int generation, int sleep){
             clearScreen();
             if(mat.empty() || mat[0].empty()){throw invalid_argument("Matrix does not exist!\nCannot print.");}
 
+            bool isAllDead = false;
             for(int i=0; i < generation; i++){
                 for(int i=0; i < loop; i++){
                     screen();
                     this_thread::sleep_for(chrono::milliseconds(sleep)); // THIS DOES NOT WORK ON WINDOWS
                 }
-                chooseReproducers(ALL);
+                chooseReproducers(SELECTION);
                 reproduce();
+
+                // If there is no more creatures, terminate
+                if(populationSize == 0){
+                    if(isAllDead){
+                        cout << RED_TEXT << "All creatures are dead!" << RESET_TEXT << endl;
+                        break;
+                    }
+                    
+                    isAllDead = true;
+                }
+
                 iteration = 1;
                 generationNumber++;
             }
@@ -386,11 +400,25 @@ class table{
 
         ~table() {
             // Destructor
+
+            // Delete mat
             for (int i = 0; i < mat.size(); ++i) {
                 for (int j = 0; j < mat[i].size(); ++j) {
                     delete mat[i][j];
                     mat[i][j] = nullptr;
                 }
+            }
+
+            // Delete creatures
+            for(int i=0; i < creatures.size(); i++){
+                delete creatures.at(i);
+                creatures.at(i) = nullptr;
+            }
+
+            // Delete reproducers
+            for(int i=0; i < reproducers.size(); i++){
+                delete reproducers.at(i);
+                reproducers.at(i) = nullptr;
             }
         }
 };

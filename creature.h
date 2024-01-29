@@ -12,7 +12,7 @@ static const int DNA_SIZE = (1+ID_SIZE)*2 + WEIGHT_SIZE;
 struct genome{
 
     string DNA;
-    static constexpr double MUTATION_RATIO = 0.02;
+    static constexpr double MUTATION_RATIO = 0.001;
 
     /*
         Genome:         0-0011111-0-0000110-01111011010101110100010111000110
@@ -55,7 +55,7 @@ struct genome{
         // Genomes that will be crossed over are will be same indices !
         // Crossover will be part by part
         int doneIndex = 0;
-        int minPartSize = 2;
+        int minPartSize = DNA_SIZE / 4;         // IMPORTANT !!!
 
         genome* A = this;
         genome* B = &other;
