@@ -55,7 +55,7 @@ struct genome{
         // Genomes that will be crossed over are will be same indices !
         // Crossover will be part by part
         int doneIndex = 0;
-        int minPartSize = DNA_SIZE / 4;         // IMPORTANT !!!
+        int minPartSize = 2;         // IMPORTANT !!!
 
         genome* A = this;
         genome* B = &other;

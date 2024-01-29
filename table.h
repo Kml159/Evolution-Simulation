@@ -3,7 +3,7 @@
 
 using namespace std;
 
-#define pop 0.4         // Population density
+#define pop 0.9         // Population density
 
 struct dummy{
     char symbol;
