@@ -29,8 +29,9 @@
 #define BOLD_MAGENTA_TEXT "\033[1;35m"
 #define BOLD_CYAN_TEXT "\033[1;36m"
 #define BOLD_WHITE_TEXT "\033[1;37m"
-
 #define RESET_TEXT "\033[0m"
+
+#define maybe (std::rand() % 2 == 0)
 
 using namespace std;
 

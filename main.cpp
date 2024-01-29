@@ -21,8 +21,18 @@ using namespace std;
 int main(){
 
     srand(static_cast<unsigned>(time(nullptr)));
-    table A(10, 50, 50);
+    
+    genome A;
+    cout << "A: ";
+    A.printCode();
 
-    A.screen(50, 22);   
+    genome B;
+    cout << "B: ";
+    B.printCode();
+
+    genome C = A.crossoverWith(B);
+    cout << "C: ";
+    C.printCode();
+
     return 0;
 }

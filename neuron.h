@@ -8,10 +8,6 @@ using namespace std;
 #define maxInnerNeuron 2
 #define genomeLength 100
 
-// Declaretions for reproduce function
-#define CROSS_OVER_RATIO 0.2
-#define MUTATION_RATIO 0.1
-
 // Declaretions 
 struct creature;
 struct NN;

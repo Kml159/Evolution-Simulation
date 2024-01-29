@@ -9,13 +9,10 @@ static const int WEIGHT_SIZE = 32;
 static const int DNA_SIZE = (1+ID_SIZE)*2 + WEIGHT_SIZE;
 // !!! DO NOT CHANGE THIS !!!
 
-
-int count2 = 0;
-
 struct genome{
 
-    // Genome is a string of 0's and 1's randomly string
     string DNA;
+    static constexpr double MUTATION_RATIO = 0.02;
 
     /*
         Genome:         0-0011111-0-0000110-01111011010101110100010111000110
@@ -37,15 +34,10 @@ struct genome{
         
     }
 
-    /*
-        Genome:         0-0011111-0-0000110-01111011010101110100010111000110
-                        ^SourceID ^DestID   ^Weight
-                        ^0        ^8        ^16
-       
-        SourceID:       1~0000000 // First bit: isInner, Rest: Which source neuron is this?
-        DestinationID:  1~0000000 // First bit: isInner, Rest: Which destination neuron is this?
-
-    */
+    genome(genome &genome){
+        // Copy Constructor
+        this->DNA = genome.DNA;
+    }
 
     pair<bool, unsigned int> getSource() const {
         return make_pair(charToBool(DNA[0]), stringToUnsigned(DNA, 1, ID_SIZE));
@@ -59,19 +51,49 @@ struct genome{
         return stringToUnsigned(DNA, 2+(ID_SIZE*2), WEIGHT_SIZE);
     }
 
-    void crossOver(genome& A){
-        // Swap random bits between two genomes
-        for(int i=0; i < CROSS_OVER_RATIO*DNA_SIZE; i++){
-            int index = getRandom(0, DNA_SIZE);
-            swap(DNA[index], A.DNA[index]);
+    inline genome crossoverWith(genome& other){
+        // Genomes that will be crossed over are will be same indices !
+        // Crossover will be part by part
+        int doneIndex = 0;
+        int minPartSize = 2;
+
+        genome* A = this;
+        genome* B = &other;
+        genome child;
+
+        /*
+            Parent A:  0-0011111-0-0000110-01100010000101110100010111000110
+            Parent B:  1-0000000-1-0000110-01111011011101100101011011000110
+
+            Child:     0-0011111-1-0000110-01100011010101100101010111000110
+        */
+        
+        while(true){
+            if(doneIndex >= DNA_SIZE){break;}   // If all DNA is crossed over, break
+
+            bool isFromA = maybe;    // Randomly choose from which parent to take the part
+            int size = getRandom(minPartSize, DNA_SIZE - doneIndex);    // Randomly choose the size of the part
+
+            // ParentA or ParentB -> Child
+            if(isFromA){
+                child.DNA.replace(doneIndex, size, A->DNA.substr(doneIndex, size));
+            }
+            else{
+                child.DNA.replace(doneIndex, size, B->DNA.substr(doneIndex, size));
+            }
+
+            doneIndex += size;
         }
+
+        return child;
     }
 
-    void mutation(){
-        // Flip random bits
-        for(int i=0; i < CROSS_OVER_RATIO*DNA_SIZE; i++){
-            int index = getRandom(0, DNA_SIZE); // Get random index
-            DNA[index] = !DNA[index];
+    inline void mutation(){
+        // Mutate DNA
+        for(int i=0; i < DNA_SIZE; i++){
+            if(getRandomDouble(0.0, 1.0) < MUTATION_RATIO){
+                DNA[i] = (DNA[i] == '0') ? '1' : '0';
+            }
         }
     }
 
@@ -147,6 +169,7 @@ struct NN{
         for(int i=0; i < maxConnection; DNA[i] = nn.DNA[i++]);
     }
 
+    // ONLY FOR MONITORING RANDOMY SELECTED CREATURE !!!
     void setCreature(creature* owner){
         // Set owner of the NN
         for(int i=0; i < NumberOfNeuronTypes; nonInnerNeurons[i++]->owner = owner);
@@ -254,33 +277,41 @@ struct NN{
     }
 
     void printNeuronConnections() const {
-        
         cout << string(80, '-') << endl;
         cout << YELLOW_TEXT;
         cout << setw(20) << left << "Source"
-        << setw(20) << left << "Destination"
-        << setw(20) << left << "Weight" 
-        << setw(20) << left << "Output"
-        << endl;
+            << setw(20) << left << "Destination"
+            << setw(20) << left << "Weight" 
+            << setw(20) << left << "Output"
+            << endl;
         cout << RESET_TEXT;
 
         // Print all neuron connections
         for(int i=0; i < maxConnection; i++){
             pair<bool, unsigned int> SOURCE = DNA[i].getSource();
             pair<bool, unsigned int> DESTINATION = DNA[i].getDestination();
+            
+            // Avoid multiple calls to getNeuron with side effects
+            auto sourceNeuron = getNeuron(SOURCE);
+            auto destNeuron = getNeuron(DESTINATION);
 
-            if(getNeuron(SOURCE)->getOutput() == 1.0){cout << BLUE_TEXT;}
-            else if(getNeuron(SOURCE)->getOutput() > 0){cout << GREEN_TEXT;}
-            else if(getNeuron(SOURCE)->getOutput() == -1.0){cout << RED_TEXT;}
+            // Use auto to simplify the type and avoid casting
+            auto sourceName = typeid(*sourceNeuron).name();
+            auto destName = typeid(*destNeuron).name();
 
-            cout << setw(20) << left << typeid(*getNeuron(SOURCE)).name() 
-            << setw(20) << left << typeid(*getNeuron(DESTINATION)).name() 
-            << setw(20) << left << DNA[i].getWeight()
-            << setw(20) << left << setprecision(10) << getNeuron(SOURCE)->getOutput();
+            if(sourceNeuron->getOutput() == 1.0){cout << BLUE_TEXT;}
+            else if(sourceNeuron->getOutput() > 0){cout << GREEN_TEXT;}
+            else if(sourceNeuron->getOutput() == -1.0){cout << RED_TEXT;}
+
+            cout << setw(20) << left << sourceName
+                << setw(20) << left << destName
+                << setw(20) << left << DNA[i].getWeight()
+                << setw(20) << left << setprecision(10) << sourceNeuron->getOutput();
             cout << RESET_TEXT << endl;
         }
         cout << string(80, '-') << endl;
     }
+
 
     /*
     void initNeurons(){
@@ -350,6 +381,7 @@ struct creature{
     char symbol = 'o';
     string color;
     bool isChoosen = false;
+    bool allowed2Reproduce = false;
     pair<int, int> coord;
 
     creature(){
@@ -380,32 +412,42 @@ struct creature{
         brain.setPTR(coord, &isChoosen);   
     }
 
-    void reproduceWith(creature &A){
-        // Create new creature
-        creature* B = new creature();
-        // Gets some genomes from parent A and some from parent B
+    inline creature* reproduceWith(creature* other){
+        /*
+            HOW TO REPRODUCE:
+
+            ParentA:
+                DNA0 = 0111010101010101010101010101010101010101010101010101010101010101
+                DNA1 = 1101111010101010101010101010101010101010101010101010101010101010
+                DNA2 = 1110010010100110111010000101001101010011010100101010111110000000
+
+            ParentB:
+                DNA0 = 1010010011110111101011101001101010101111100101011011101111110000
+                DNA1 = 1001010111101010101110100001000111111101111011101001001010001001
+                DNA2 = 1001111101001001001001010010100100101001100100100101010010101010
+
+            Child:
+                DNA0 <- ParentA.DNA0.crossOver(ParentB.DNA0)
+                DNA1 <- ParentA.DNA1.crossOver(ParentB.DNA1)
+                DNA2 <- ParentA.DNA2.crossOver(ParentB.DNA2)
+        */
+
+        creature* child = new creature();
+
+        // Crossover
         for(int i=0; i < maxConnection; i++){
-            if(getRandom(0, 1) == 0){
-                B->brain.DNA[i] = A.brain.DNA[i];
-            }
-            else{
-                B->brain.DNA[i] = brain.DNA[i];
-            }
+            child->brain.DNA[i] = this->brain.DNA[i].crossoverWith(other->brain.DNA[i]);
         }
 
-        // Mutate
+        // Mutation
         for(int i=0; i < maxConnection; i++){
-            if(getRandom(0, 100) < MUTATION_RATIO){
-                B->brain.DNA[i].mutation();
-            }
+            child->brain.DNA[i].mutation();
         }
 
-    }
+        // Set child's coordinates randomly
+        // !!!!!! initCoordinates(getRandom(0, creatureTable->size()-1), getRandom(0, creatureTable->at(0).size()-1));
 
-    creature operator*(creature &A){
-
-        // Reproduce with A and return the new creature
-
+        return child;
     }
 
     void setCoordiantes(const pair<int, int> &coord){this->coord = coord;}

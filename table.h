@@ -3,8 +3,8 @@
 
 using namespace std;
 
-#define pop 0.01         // Population density
-#define stepTime 200   // FPS by milisecond
+#define pop 0.1         // Population density
+#define sleep 100       // Miliseconds to sleep
 
 struct dummy{
     char symbol;
@@ -22,11 +22,26 @@ class table{
 
     private:
 
+        enum Reproduce{
+            RIGHT,      
+            LEFT,
+            TOP,
+            BOTTOM,
+            CENTER,
+            CORNERS,
+            ALL,
+            SIDES,
+            TOP_BOTTOM,
+            LEFT_RIGHT
+        };
+
         vector<vector<creature*>> mat;
         vector<creature*> creatures;
         unsigned int populationSize;
         creature* randomCreature;
         unsigned int iteration = 1;
+
+        vector<creature*> reproducers;
 
         void randomize(){
             for(int i=0; i < creatures.size(); creatures.at(i++)->randomize());
@@ -43,14 +58,14 @@ class table{
 
         void print() const { // LAST COLUMN IS WRONGLY PRINTED !!!!!!!!!!!!
             // Print whole board
-            short gap = 2;
+            short gap = 1;
             if (mat.empty() || mat.at(0).empty()) {
                 throw invalid_argument("Matrix does not exist!\nCannot print.");
             }
 
-            cout << string(mat[0].size()*(gap+1) + 2, '|') << endl;
+            cout << string(mat[0].size()*(gap+1) + 1, '|') << endl;
             for (int i = 0; i < mat.size(); i++) {
-                cout << "| ";
+                cout << "|";
                 for (int j = 0; j < mat.at(0).size(); j++) {
                     if (mat.at(i).at(j) == nullptr) {cout << setw(gap) << " ";} 
                     else {cout << mat.at(i).at(j)->color << setw(gap) << mat.at(i).at(j)->symbol << RESET_TEXT;}
@@ -58,10 +73,8 @@ class table{
                 }
                 cout << "|" << endl;
             }
-            cout << string(mat[0].size()*(gap+1) + 2, '|') << endl;
+            cout << string(mat[0].size()*(gap+1) + 1, '|') << endl;
         }
-
-        
 
         void printInfo() {
             cout << "\tPopulation Size:\t" << populationSize << endl;
@@ -81,6 +94,21 @@ class table{
                 col = getRandom(0, mat.at(0).size()-1);
             }
             creature* A = new creature();
+            creatures.push_back(A);
+            A->initCoordinates(row, col);
+            mat.at(row).at(col) = A;
+            populationSize++;
+        }
+
+        void putCreature(creature* A){
+            // Put a creature in a random position, if place is occupied find another place
+            if(mat.empty()){throw invalid_argument("Table matrix is empty!");}
+            int row = getRandom(0, mat.size()-1);
+            int col = getRandom(0, mat.at(0).size()-1);
+            while(mat.at(row).at(col) != nullptr){
+                row = getRandom(0, mat.size()-1);
+                col = getRandom(0, mat.at(0).size()-1);
+            }
             creatures.push_back(A);
             A->initCoordinates(row, col);
             mat.at(row).at(col) = A;
@@ -125,7 +153,184 @@ class table{
             this->populationSize = table.populationSize;
         }
 
-        bool isValid(int row, int col) {
+        inline void chooseReproducers(const Reproduce where){
+            // Right half of the table reproduces
+            switch (where){
+
+                case RIGHT:
+                    // Right-half of the screen will reproduce
+                    for(int i=0; i < mat.size(); i++){
+                        for(int j=mat.at(0).size()/2; j < mat.at(0).size(); j++){
+                            if(mat.at(i).at(j) != nullptr){
+                                reproducers.push_back(mat.at(i).at(j));
+                            }
+                        }
+                    }
+                    break;
+                
+                case LEFT:
+                    // Left-half of the screen will reproduce
+                    for(int i=0; i < mat.size(); i++){
+                        for(int j=0; j < mat.at(0).size()/2; j++){
+                            if(mat.at(i).at(j) != nullptr){
+                                reproducers.push_back(mat.at(i).at(j));
+                            }
+                        }
+                    }
+                    break;
+
+                case TOP:
+                    // Top-half of the screen will reproduce
+                    for(int i=0; i < mat.size()/2; i++){
+                        for(int j=0; j < mat.at(0).size(); j++){
+                            if(mat.at(i).at(j) != nullptr){
+                                reproducers.push_back(mat.at(i).at(j));
+                            }
+                        }
+                    }
+                    break;
+
+                case BOTTOM:
+                    // Bottom-half of the screen will reproduce
+                    for(int i=mat.size()/2; i < mat.size(); i++){
+                        for(int j=0; j < mat.at(0).size(); j++){
+                            if(mat.at(i).at(j) != nullptr){
+                                reproducers.push_back(mat.at(i).at(j));
+                            }
+                        }
+                    }
+                    break;
+
+                case CENTER:
+                    // Center of the screen will reproduce
+                    for(int i=mat.size()/4; i < mat.size()*3/4; i++){
+                        for(int j=mat.at(0).size()/4; j < mat.at(0).size()*3/4; j++){
+                            if(mat.at(i).at(j) != nullptr){
+                                reproducers.push_back(mat.at(i).at(j));
+                            }
+                        }
+                    }
+                    break;
+
+                case CORNERS:
+                    // Corners of the screen will reproduce
+                    for(int i=0; i < mat.size(); i++){
+                        for(int j=0; j < mat.at(0).size(); j++){
+                            if(mat.at(i).at(j) != nullptr){
+                                if(i == 0 && j == 0){reproducers.push_back(mat.at(i).at(j));}
+                                else if(i == 0 && j == mat.at(0).size()-1){reproducers.push_back(mat.at(i).at(j));}
+                                else if(i == mat.size()-1 && j == 0){reproducers.push_back(mat.at(i).at(j));}
+                                else if(i == mat.size()-1 && j == mat.at(0).size()-1){reproducers.push_back(mat.at(i).at(j));}
+                            }
+                        }
+                    }
+                    break;
+
+                case ALL:
+                    // All of the screen will reproduce
+                    for(int i=0; i < mat.size(); i++){
+                        for(int j=0; j < mat.at(0).size(); j++){
+                            if(mat.at(i).at(j) != nullptr){
+                                reproducers.push_back(mat.at(i).at(j));
+                            }
+                        }
+                    }
+                    break;
+                
+                case SIDES:
+                    // Left 2 col and right 2 col of the screen will reproduce, if screen is smaller than 4 col, throw exception
+                    if(mat.at(0).size() < 4){throw invalid_argument("Cannot choose reproduces, screen is smaller than 4 col!");}
+
+                    // Left 2 col
+                    for(int i=0; i < mat.size(); i++){
+                        for(int j=0; j < 2; j++){
+                            if(mat.at(i).at(j) != nullptr){
+                                reproducers.push_back(mat.at(i).at(j));
+                            }
+                        }
+                    }
+                    
+                    // Right 2 col
+                    for(int i=0; i < mat.size(); i++){
+                        for(int j=mat.at(0).size()-2; j < mat.at(0).size(); j++){
+                            if(mat.at(i).at(j) != nullptr){
+                                reproducers.push_back(mat.at(i).at(j));
+                            }
+                        }
+                    }
+                    break;
+
+                case TOP_BOTTOM:
+                    // Top 2 row and bottom 2 row of the screen will reproduce, if screen is smaller than 4 row, throw exception
+                    if(mat.size() < 4){throw invalid_argument("Cannot choose reproduces, screen is smaller than 4 row!");}
+
+                    // Top 2 row
+                    for(int i=0; i < 2; i++){
+                        for(int j=0; j < mat.at(0).size(); j++){
+                            if(mat.at(i).at(j) != nullptr){
+                                reproducers.push_back(mat.at(i).at(j));
+                            }
+                        }
+                    }
+
+                    // Bottom 2 row
+                    for(int i=mat.size()-2; i < mat.size(); i++){
+                        for(int j=0; j < mat.at(0).size(); j++){
+                            if(mat.at(i).at(j) != nullptr){
+                                reproducers.push_back(mat.at(i).at(j));
+                            }
+                        }
+                    }
+                    break;
+                
+                default:
+                    break;
+            }
+        }
+
+        inline void reproduce(){
+            // Reproduce creatures
+            vector<creature*> nextGeneration;
+            
+            // Shuffle the reproducers
+            random_device rd;
+            mt19937 g(rd());
+            shuffle(reproducers.begin(), reproducers.end(), g);
+
+            // Set population counter to 0
+            populationSize = 0;
+
+            // Reproduce in pairs
+            for(int i=0; i < reproducers.size(); i+=2){
+                creature* A = reproducers.at(i);
+                creature* B = reproducers.at(i+1);
+
+                if(A == nullptr || B == nullptr){throw invalid_argument("Cannot reproduce, one of the creatures is nullptr!");}
+
+                // Create a new creature every 2 parents will create 2 children
+                creature* C = A->reproduceWith(B);
+                creature* D = B->reproduceWith(A);
+
+                // Delete the parents
+                delete A;
+                A = nullptr;
+                delete B;
+                B = nullptr;
+
+                // Add the children to the next generation
+                putCreature(C);
+                putCreature(D);
+
+                populationSize += 2;
+            }
+
+            // Clear creatures and mat
+            creatures.clear();
+
+
+        }
+
+        inline bool isValid(int row, int col) {
             // Check if the given coordinates are valid
             if (row < 0 || row >= mat.size() || col < 0 || col >= mat.at(0).size()) {
                 return false; // index out of range
@@ -135,50 +340,6 @@ class table{
             }
             return true;
         }
-
-        /*
-        void handleAction(unsigned int i, unsigned int j, Action act){
-            switch (act) {
-                case Action::UP:
-                    // Handle UP
-                    if (isValid(i - 1, j)) {
-                        mat.at(i - 1).at(j) = mat.at(i).at(j);
-                        mat.at(i).at(j) = nullptr;
-                    }
-                    break;
-                case Action::LEFT:
-                    // Handle LEFT
-                    if (isValid(i, j - 1)) {
-                        mat.at(i).at(j - 1) = mat.at(i).at(j);
-                        mat.at(i).at(j) = nullptr;
-                    }
-                    break;
-                case Action::RIGHT:
-                    // Handle RIGHT
-                    if (isValid(i, j + 1)) {
-                        mat.at(i).at(j + 1) = mat.at(i).at(j);
-                        mat.at(i).at(j) = nullptr;
-                    }
-                    break;
-                case Action::DOWN:
-                    // Handle DOWN
-                    if (isValid(i + 1, j)) {
-                        mat.at(i + 1).at(j) = mat.at(i).at(j);
-                        mat.at(i).at(j) = nullptr;
-                    }
-                    break;
-                case Action::STAY:
-                    // Handle STAY
-                    break;
-                case Action::KILL:
-                    // Handle STAY
-                    break;
-                default:
-                    // Handle default case
-                    break;
-            }
-        }
-        */
 
         inline void update(){
             for(int i=0; i < creatures.size(); creatures.at(i++)->action());
@@ -192,13 +353,18 @@ class table{
             randomCreature->printNeuronConnections();
         }
 
-        inline void screen(int loop, int sleep){
+        inline void screen(int loop, int generation){
             clearScreen();
             if(mat.empty() || mat[0].empty()){throw invalid_argument("Matrix does not exist!\nCannot print.");}
 
-            for(int i=0; i < loop; i++){
-                screen();
-                this_thread::sleep_for(chrono::milliseconds(sleep)); // THIS DOES NOT WORK ON WINDOWS
+            for(int i=0; i < generation; i++){
+                for(int i=0; i < loop; i++){
+                    screen();
+                    this_thread::sleep_for(chrono::milliseconds(sleep)); // THIS DOES NOT WORK ON WINDOWS
+                }
+                clearScreen();
+                chooseReproducers(RIGHT);
+                reproduce();
             }
         }
 
