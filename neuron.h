@@ -186,6 +186,7 @@ struct bottomEye: neuron{
     void unconditionallyDo() override {}
 };
 
+// SHOULD NEURONS NOT RETURN NEGATIVE VALUES ????? !!!!!
 struct lateralLocation: neuron{
 
     double getOutput() const override {

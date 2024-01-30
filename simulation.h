@@ -10,7 +10,7 @@ using namespace std;
 
 #define pop 0.1         // Population density
 
-class table{
+class simulation{
 
     private:
 
@@ -292,22 +292,15 @@ class table{
             }
         }
 
+        inline void reproduceElitist(){
+            
+        }
+
         inline void screen(){
             clearScreen();                
             printInfo();
             print();
             // randomCreature->printNeuronConnections();
-        }
-
-        inline bool isValid(int row, int col) {
-            // Check if the given coordinates are valid
-            if (row < 0 || row >= mat.size() || col < 0 || col >= mat.at(0).size()) {
-                return false; // index out of range
-            }
-            if (mat.at(row).at(col) != nullptr) {
-                return false; // not empty
-            }
-            return true;
         }
 
         inline void chooseReproducers(const chooseReproducers where){
@@ -456,7 +449,7 @@ class table{
 
     public:
 
-        table(unsigned int const individualNumber, unsigned int const row, unsigned int const col){
+        simulation(unsigned int const individualNumber, unsigned int const row, unsigned int const col){
 
             // Initialize pointer to creatureTable
             creatureTable = &mat;
@@ -482,7 +475,7 @@ class table{
             this->normalPopulationSize = populationSize;
         }
 
-        table(vector<vector<creature*>> &mat){this->mat = mat;}
+        simulation(vector<vector<creature*>> &mat){this->mat = mat;}
 
         inline void screen(int loop, int generation, int sleep){
             clearScreen();
@@ -493,7 +486,7 @@ class table{
                 
                 simulateGeneration(loop, sleep);
                 chooseReproducers(SELECTION);
-                reproduceConstPop();
+                reproduceSurvivalist2();
 
                 // If there is no more creatures, terminate
                 if(populationSize == 0){
@@ -510,7 +503,7 @@ class table{
             }
         }
 
-        ~table() {
+        ~simulation() {
             // Destructor
             mat.clear();
 
