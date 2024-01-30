@@ -197,6 +197,10 @@ struct NN{
                 return new topEye();
             case NeuronTypes::BOTTOM_EYE:
                 return new bottomEye();
+            case NeuronTypes::LATERAL_LOCATION:
+                return new lateralLocation();
+            case NeuronTypes::VERTICAL_LOCATION:
+                return new verticalLocation();
             case NeuronTypes::GO_LEFT:
                 return new goLeft(); // Add more cases for other neuron types
             case NeuronTypes::GO_RIGHT:
@@ -336,6 +340,8 @@ struct creature{
     bool isChoosen = false;
     bool allowed2Reproduce = false;
     pair<int, int> coord;
+
+    int score = 0;
 
     creature(){
         

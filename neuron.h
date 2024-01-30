@@ -5,7 +5,7 @@ using namespace std;
 
 // Forward declaration
 #define maxConnection 26
-#define maxInnerNeuron 2
+#define maxInnerNeuron 6
 #define genomeLength 100
 
 // Declaretions 
@@ -25,6 +25,8 @@ enum class NeuronTypes{
     BOTTOM_EYE,
 
     // ADD LOCATION NEURON holds the coordiantes !!!
+    LATERAL_LOCATION,
+    VERTICAL_LOCATION,
 
     // MUSCLE
     GO_LEFT,
@@ -179,6 +181,30 @@ struct bottomEye: neuron{
         if(isOutOfBounds(coord->first+1, coord->second)){return -1.0;}                               // If there is a wall
         if(isOccupied(coord->first+1, coord->second)){return 1.0;}      // If there is a creature
         return 0.0;
+    }
+
+    void unconditionallyDo() override {}
+};
+
+struct lateralLocation: neuron{
+
+    double getOutput() const override {
+        // Left: -1.0, Center: 0.0, Right: 1.0
+        int location = coord->second;
+        int size = creatureTable->at(0).size();
+        return continuous(size, location);
+    }
+
+    void unconditionallyDo() override {}
+};
+
+struct verticalLocation: neuron{
+
+    double getOutput() const override {
+        // Top: -1.0, Center: 0.0, Bottom: 1.0
+        int location = coord->first;
+        int size = creatureTable->size();
+        return continuous(size, location);
     }
 
     void unconditionallyDo() override {}

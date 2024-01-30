@@ -442,6 +442,18 @@ class table{
             }
         }
 
+        inline void simulateGeneration(int loop, int sleep){
+            for(int i=0; i < loop; i++){
+                screen();
+                #ifdef _WIN32
+                Sleep(sleep); // THIS WORKS ON WINDOWS
+                #else
+                this_thread::sleep_for(chrono::milliseconds(sleep)); // THIS DOES NOT WORK ON WINDOWS
+                #endif
+                update();
+            }
+        }
+
     public:
 
         table(unsigned int const individualNumber, unsigned int const row, unsigned int const col){
@@ -478,15 +490,8 @@ class table{
 
             bool isAllDead = false;
             for(int i=0; i < generation; i++){
-                for(int i=0; i < loop; i++){
-                    screen();
-                    #ifdef _WIN32
-                    Sleep(sleep); // THIS WORKS ON WINDOWS
-                    #else
-                    this_thread::sleep_for(chrono::milliseconds(sleep)); // THIS DOES NOT WORK ON WINDOWS
-                    #endif
-                    update();
-                }
+                
+                simulateGeneration(loop, sleep);
                 chooseReproducers(SELECTION);
                 reproduceConstPop();
 
