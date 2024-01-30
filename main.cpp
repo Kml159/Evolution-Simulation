@@ -21,15 +21,9 @@ using namespace std;
 int main(){
 
     srand(static_cast<unsigned>(time(nullptr)));
-    
-    creature A;
-    creature B;
+    table A(20, 50, 90);
 
-    A.printDNA();
-    B.printDNA();
-
-    creature* C = A.reproduceWith(&B);
-    C->printDNA();
+    A.screen(100, 3, 50);   
 
     return 0;
 }

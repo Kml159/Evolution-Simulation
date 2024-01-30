@@ -3,25 +3,13 @@
 
 using namespace std;
 
-#define pop 0.9         // Population density
-
-struct dummy{
-    char symbol;
-
-    dummy(){
-        symbol = (getRandom(0, 5)) + 'a';
-    }
-
-    void randomize(){
-        symbol = (getRandom(0, 5)) + 'a';
-    }
-};
+#define pop 0.1         // Population density
 
 class table{
 
     private:
 
-        enum Reproduce{
+        enum chooseReproducers{
             RIGHT,      
             LEFT,
             TOP,
@@ -33,16 +21,19 @@ class table{
             TOP_BOTTOM,
             LEFT_RIGHT
         };
-
+        
         vector<vector<creature*>> mat;
         vector<creature*> creatures;
         vector<creature*> reproducers;
-        creature* randomCreature;
+
+        creature* monitoredCreature;
+        
         unsigned int populationSize;
+        unsigned int normalPopulationSize;
         unsigned int iteration = 1;
         unsigned int generationNumber = 1;
 
-        static const Reproduce SELECTION = BOTTOM;
+        static const chooseReproducers SELECTION = RIGHT;
 
         void randomize(){
             for(int i=0; i < creatures.size(); creatures.at(i++)->randomize());
@@ -57,7 +48,7 @@ class table{
             */
         }
 
-        void print() const { // LAST COLUMN IS WRONGLY PRINTED !!!!!!!!!!!!
+        void print() const {
             // Print whole board
             short gap = 1;
             if (mat.empty() || mat.at(0).empty()) {
@@ -78,15 +69,16 @@ class table{
         }
 
         void printInfo() {
-            cout << "\tPopulation Size:\t" << populationSize << endl;
-            cout << "\tCapacity:\t\t" << mat.size()*mat.at(0).size() << endl;
-            cout << "\tIteration:\t\t" << iteration++ << endl;
-            cout << "\tGeneration:\t\t" << generationNumber << endl << endl;
+            cout << BOLD_CYAN_TEXT << setw(30) << left << "Init. Population: " + to_string(normalPopulationSize)
+            << setw(30) << left <<  "Population Size: " + to_string(populationSize)
+            << setw(30) << left <<  "Capacity: " + to_string(mat.size()*mat.at(0).size()) << endl
+            << setw(30) << left <<  "Iteration: " + to_string(iteration++)
+            << setw(30) << left <<  "Generation: " + to_string(generationNumber) << RESET_TEXT << endl << endl;
         }
 
         void clearScreen() const {cout << "\033[H\033[J";}
 
-        void putRandomCreature(){
+        inline void putRandomCreature(){
             // Put a random creature in a random position, if place is occupied find another place
             if(mat.empty()){throw invalid_argument("Table matrix is empty!");}
             int row = getRandom(0, mat.size()-1);
@@ -102,7 +94,7 @@ class table{
             populationSize++;
         }
 
-        void putCreature(creature* A){
+        inline void putCreature(creature* A){
             // Put a creature in a random position, if place is occupied find another place
             if(mat.empty()){throw invalid_argument("Table matrix is empty!");}
             int row = getRandom(0, mat.size()-1);
@@ -121,7 +113,21 @@ class table{
             for(int i=0; i < creatures.size(); creatures.at(i++)->action());
         }
 
-        inline void reproduce(){
+        inline void clearCreaturesTable(){
+            // Clear creatures table
+            creatures.clear();
+
+            // Set matrix to nullptr
+            for(int i=0; i < mat.size(); i++){
+                for(int j=0; j < mat.at(0).size(); j++){
+                    mat.at(i).at(j) = nullptr;
+                }
+            }
+
+            this->populationSize = 0;
+        }
+
+        inline void reproduceSurvivalist(){
 
             // Set matrix to nullptr
             for(int i=0; i < mat.size(); i++){
@@ -159,11 +165,7 @@ class table{
                 creature* D = B->reproduceWith(A);
 
                 if(flag){   // Select individual to monitor
-                    this->randomCreature = C;
-                    this->randomCreature->isChoosen = true;
-                    this->randomCreature->setCreature();
-                    this->randomCreature->symbol = 'X';
-                    this->randomCreature->color = BOLD_WHITE_TEXT;
+                    setMonitoredCreature(C);
                     flag = false;
                 }
 
@@ -179,6 +181,58 @@ class table{
             }
             
             reproducers.clear();
+        }
+
+        inline void setMonitoredCreature(creature* choosen){
+            this->monitoredCreature = choosen;
+            this->monitoredCreature->isChoosen = true;
+            this->monitoredCreature->setCreature();
+            this->monitoredCreature->symbol = 'X';
+            this->monitoredCreature->color = BOLD_WHITE_TEXT;
+        }
+
+        inline void reproduceSurvivalist2(){
+            // Keep the population size constant
+
+            clearCreaturesTable();
+
+            shuffle(reproducers.begin(), reproducers.end(), mt19937(random_device()()));
+
+            bool flag = true; 
+
+            if(reproducers.size() % 2 != 0){reproducers.pop_back();} 
+
+            // Reproduce in pairs
+            for(int i=0; i < reproducers.size(); i+=2){
+
+                creature* A = reproducers.at(i);
+                creature* B = reproducers.at(i+1);
+
+                if(A == nullptr || B == nullptr){throw invalid_argument("Cannot reproduce, one of the creatures is nullptr!");}
+
+                // Create a new creature every 2 parents will create 2 children
+                creature* childA = A->reproduceWith(B);
+                creature* childB = B->reproduceWith(A);
+
+                // Select individual to monitor
+                if(flag){   
+                    setMonitoredCreature(childA);
+                    flag = false;
+                }
+
+                // Delete the parents
+                delete A;
+                delete B;
+
+                // Add the children to the next generation
+                putCreature(childA);
+                putCreature(childB);
+
+                populationSize += 2;
+            }
+
+            reproducers.clear();
+
         }
 
         inline void screen(){
@@ -200,7 +254,7 @@ class table{
             return true;
         }
 
-        inline void chooseReproducers(const Reproduce where){
+        inline void chooseReproducers(const chooseReproducers where){
             // Right half of the table reproduces
             switch (where){
 
@@ -354,12 +408,10 @@ class table{
                 }
             }
 
-            // Select a random creature
-            this->randomCreature = creatures.at(getRandom(0, creatures.size()-1));
-            this->randomCreature->isChoosen = true;
-            this->randomCreature->setCreature();
-            this->randomCreature->symbol = 'X';
-            this->randomCreature->color = BOLD_WHITE_TEXT;
+            // Select a random creature to monitor
+            setMonitoredCreature(creatures.at(getRandom(0, creatures.size()-1)));
+
+            this->normalPopulationSize = populationSize;
         }
 
         table(vector<vector<creature*>> &mat){this->mat = mat;}
@@ -381,7 +433,7 @@ class table{
                     this_thread::sleep_for(chrono::milliseconds(sleep)); // THIS DOES NOT WORK ON WINDOWS
                 }
                 chooseReproducers(SELECTION);
-                reproduce();
+                reproduceSurvivalist2();
 
                 // If there is no more creatures, terminate
                 if(populationSize == 0){
@@ -400,25 +452,25 @@ class table{
 
         ~table() {
             // Destructor
-
-            // Delete mat
-            for (int i = 0; i < mat.size(); ++i) {
-                for (int j = 0; j < mat[i].size(); ++j) {
-                    delete mat[i][j];
-                    mat[i][j] = nullptr;
-                }
-            }
+            mat.clear();
 
             // Delete creatures
             for(int i=0; i < creatures.size(); i++){
-                delete creatures.at(i);
-                creatures.at(i) = nullptr;
+                if(creatures.at(i) != nullptr){
+                    delete creatures.at(i);
+                    creatures.at(i) = nullptr;
+                }
             }
+            creatures.clear();
 
             // Delete reproducers
             for(int i=0; i < reproducers.size(); i++){
-                delete reproducers.at(i);
-                reproducers.at(i) = nullptr;
+                if(reproducers.at(i) != nullptr){
+                    delete reproducers.at(i);
+                    reproducers.at(i) = nullptr;
+                }
             }
+
+            cout << GREEN_TEXT << "Program terminated successfully!" << RESET_TEXT << endl;
         }
 };
