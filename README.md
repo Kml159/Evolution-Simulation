@@ -49,4 +49,6 @@ The population will be randomly generated. Every individual in the population wi
 The creatures will be placed in the world. The creatures will be given a DNA. The DNA will be used to create the neural network. The neural network will be used to control the creature. The creature will live or die based on world conditions. The creatures who live will earn to reproduce. The creatures who die will not be able to reproduce. Also the creatures who live will pass on their DNA to the next generation. The DNA will be mutated and crossed over to create a new generation of creatures. 
 
 ## Simulation
-...
+![Alt text](img/sim01.png)
+![Alt text](img/sim02.png)
+![Alt text](img/sim03.png)

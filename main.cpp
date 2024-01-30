@@ -36,7 +36,7 @@ int main(){
 
     srand(static_cast<unsigned>(time(nullptr)));
 
-    simulation A(50, 90, 0.1);
+    simulation A(50, 90, 0.5);
 
     int oneGeneration = 100;
     int numberOfGenerations = 20;
