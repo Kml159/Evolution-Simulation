@@ -21,9 +21,9 @@ using namespace std;
 int main(){
 
     srand(static_cast<unsigned>(time(nullptr)));
-    simulation A(20, 50, 90);
+    simulation A(20, 50, 90, 0.1);
 
-    A.screen(100, 20, 50);   
+    A.screen(100, 20, 50, reproductionTypes::ELITIST, survivalSpot::CENTER);   
 
     return 0;
 }

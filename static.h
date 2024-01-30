@@ -114,7 +114,7 @@ unsigned int stringToUnsigned(const string& str, int start, int size) {
     return result;    
 }
 
-inline double continuous(int size, int location) {
+double continuous(int size, int location) {
     double midpoint = static_cast<double>(size) / 2.0;
     double normalized_location = static_cast<double>(location) / static_cast<double>(size);
     double scaling_factor = 2.0;  // Adjusted for a range of -1.0 to 1.0

@@ -8,25 +8,33 @@
 
 using namespace std;
 
-#define pop 0.1         // Population density
+#define asd 0.1         // Population density
+
+enum reproductionTypes{
+    SURVIVALIST,
+    CONST_POP,
+    ELITIST
+};
+
+enum survivalSpot{
+    RIGHT,      
+    LEFT,
+    TOP,
+    BOTTOM,
+    CENTER,
+    CORNERS,
+    ALL,
+    SIDES,
+    TOP_BOTTOM,
+    LEFT_RIGHT
+};
 
 class simulation{
 
     private:
 
-        enum chooseReproducers{
-            RIGHT,      
-            LEFT,
-            TOP,
-            BOTTOM,
-            CENTER,
-            CORNERS,
-            ALL,
-            SIDES,
-            TOP_BOTTOM,
-            LEFT_RIGHT
-        };
         
+
         vector<vector<creature*>> mat;
         vector<creature*> creatures;
         vector<creature*> reproducers;
@@ -34,11 +42,13 @@ class simulation{
         creature* monitoredCreature;
         
         unsigned int populationSize;
+        unsigned int prevPopulationSize;
         unsigned int normalPopulationSize;
         unsigned int iteration = 1;
         unsigned int generationNumber = 1;
 
-        static const chooseReproducers SELECTION = RIGHT;
+        double currentPopulationDensity = 0.0;
+        double generationScore = 100.0;
 
         void randomize(){
             for(int i=0; i < creatures.size(); creatures.at(i++)->randomize());
@@ -76,7 +86,9 @@ class simulation{
         void printInfo() {
             cout << BOLD_CYAN_TEXT << setw(30) << left << "Init. Population: " + to_string(normalPopulationSize)
             << setw(30) << left <<  "Population Size: " + to_string(populationSize)
-            << setw(30) << left <<  "Capacity: " + to_string(mat.size()*mat.at(0).size()) << endl
+            << setw(30) << left <<  "Capacity: " + to_string(mat.size()*mat.at(0).size())
+            << setw(30) << left <<  "Population Density: " + to_string(currentPopulationDensity) << endl
+            << setw(30) << left <<  "Generation Score: " + to_string(generationScore)
             << setw(30) << left <<  "Iteration: " + to_string(iteration++)
             << setw(30) << left <<  "Generation: " + to_string(generationNumber)
             << setw(30) << left <<  "Reproducers: " + to_string(reproducers.size()) << RESET_TEXT << endl << endl;
@@ -133,63 +145,12 @@ class simulation{
             this->populationSize = 0;
         }
 
-        inline void reproduceSurvivalist(){
-
-            // Set matrix to nullptr
-            for(int i=0; i < mat.size(); i++){
-                for(int j=0; j < mat.at(0).size(); j++){
-                    mat.at(i).at(j) = nullptr;
-                }
-            }
-            
-            // Shuffle the reproducers
-            random_device rd;
-            mt19937 g(rd());
-            shuffle(reproducers.begin(), reproducers.end(), g);
-
-            // Set population counter to 0
-            populationSize = 0;
-
-            bool flag = true; 
-
-            // If there is an odd number of reproducers, might cause problems (lesser cretures in nextgen) FIX THIS !!!
-            if(reproducers.size() % 2 != 0){reproducers.pop_back();} 
-
-            // Clear the cretures vector
-            creatures.clear();
-
-            // Reproduce in pairs
-            for(int i=0; i < reproducers.size(); i+=2){
-
-                creature* A = reproducers.at(i);
-                creature* B = reproducers.at(i+1);
-
-                if(A == nullptr || B == nullptr){throw invalid_argument("Cannot reproduce, one of the creatures is nullptr!");}
-
-                // Create a new creature every 2 parents will create 2 children
-                creature* C = A->reproduceWith(B);
-                creature* D = B->reproduceWith(A);
-
-                if(flag){   // Select individual to monitor
-                    setMonitoredCreature(C);
-                    flag = false;
-                }
-
-                // Delete the parents
-                delete A;
-                delete B;
-
-                // Add the children to the next generation
-                putCreature(C);
-                putCreature(D);
-
-                populationSize += 2;
-            }
-            
-            reproducers.clear();
-        }
-
         inline void setMonitoredCreature(creature* choosen){
+            if(monitoredCreature != nullptr){
+                monitoredCreature->isChoosen = false;
+                monitoredCreature->symbol = 'o';                
+            }
+
             this->monitoredCreature = choosen;
             this->monitoredCreature->isChoosen = true;
             this->monitoredCreature->setCreature();
@@ -197,7 +158,7 @@ class simulation{
             this->monitoredCreature->color = BOLD_WHITE_TEXT;
         }
         
-        inline void reproduceSurvivalist2(){
+        inline void reproduceSurvivalist(){
 
             clearCreaturesTable();
 
@@ -205,7 +166,13 @@ class simulation{
 
             bool flag = true; 
 
-            if(reproducers.size() % 2 != 0){reproducers.pop_back();} 
+            if(reproducers.size() % 2 != 0){
+                creature* A = reproducers.at(reproducers.size()-1);
+                creature* childA = A->reproduceWith(reproducers.at(getRandom(0, reproducers.size()-1)));
+                putCreature(childA);
+                delete A;
+                reproducers.pop_back();
+            }
 
             // Reproduce in pairs
             for(int i=0; i < reproducers.size(); i+=2){
@@ -244,12 +211,15 @@ class simulation{
             // Keep the population size constant
 
             clearCreaturesTable();
-
             shuffle(reproducers.begin(), reproducers.end(), mt19937(random_device()()));
-
             bool flag = true;
-
-            if(reproducers.size() % 2 != 0){reproducers.pop_back();}
+            if(reproducers.size() % 2 != 0){
+                creature* A = reproducers.at(reproducers.size()-1);
+                creature* childA = A->reproduceWith(reproducers.at(getRandom(0, reproducers.size()-1)));
+                putCreature(childA);
+                delete A;
+                reproducers.pop_back();
+            }
 
             // Reproduce in pairs
             for(int i=0; i < reproducers.size(); i+=2){
@@ -293,17 +263,49 @@ class simulation{
         }
 
         inline void reproduceElitist(){
-            
+            // Parent will not die after reproduction: Elitist
+
+            clearCreaturesTable();
+            shuffle(reproducers.begin(), reproducers.end(), mt19937(random_device()()));
+            bool flag = true;
+
+            if(reproducers.size() % 2 != 0){
+                creature* A = reproducers.at(reproducers.size()-1);
+                creature* childA = A->reproduceWith(reproducers.at(getRandom(0, reproducers.size()-1)));
+                putCreature(childA);
+                delete A;
+                reproducers.pop_back();
+            }
+
+            // Reproduce in pairs
+            for(int i=0; i < reproducers.size(); i+=2){
+
+                creature* A = reproducers.at(i);
+                creature* B = reproducers.at(i+1);
+
+                if(A == nullptr || B == nullptr){throw invalid_argument("Cannot reproduce, one of the creatures is nullptr!");}
+
+                // Create a new creature every 2 parents will create 2 children
+                creature* childA = A->reproduceWith(B);
+                delete B;
+
+                // Select individual to monitor
+                if(flag){   
+                    setMonitoredCreature(childA);
+                    flag = false;
+                }
+
+                // Add the children to the next generation
+                putCreature(childA);
+                putCreature(A);
+
+                populationSize += 4;
+            }
+
+            reproducers.clear();
         }
 
-        inline void screen(){
-            clearScreen();                
-            printInfo();
-            print();
-            // randomCreature->printNeuronConnections();
-        }
-
-        inline void chooseReproducers(const chooseReproducers where){
+        inline void chooseReproducers(const survivalSpot where){
             // Right half of the table reproduces
             switch (where){
 
@@ -437,19 +439,27 @@ class simulation{
 
         inline void simulateGeneration(int loop, int sleep){
             for(int i=0; i < loop; i++){
-                screen();
+
+                clearScreen();                
+                printInfo();
+                print();
+                // randomCreature->printNeuronConnections();
+
                 #ifdef _WIN32
                 Sleep(sleep); // THIS WORKS ON WINDOWS
                 #else
                 this_thread::sleep_for(chrono::milliseconds(sleep)); // THIS DOES NOT WORK ON WINDOWS
                 #endif
+
                 update();
+                this->currentPopulationDensity = (double)populationSize / (double)(mat.at(0).size()*mat.size()) * 100.0;
             }
+            prevPopulationSize = populationSize;
         }
 
     public:
 
-        simulation(unsigned int const individualNumber, unsigned int const row, unsigned int const col){
+        simulation(unsigned int const individualNumber, unsigned int const row, unsigned int const col, double populationDensity = 0.2){
 
             // Initialize pointer to creatureTable
             creatureTable = &mat;
@@ -463,7 +473,7 @@ class simulation{
             for(int i=0; i < row; i++){
                 for(int j=0; j < col; j++){
                     // If possiblitly is met put a random creature in the matrix
-                    if(pop * 100 >= getRandom(1, 100)){
+                    if(populationDensity * 100 >= getRandom(1, 100)){
                         putRandomCreature();
                     }
                 }
@@ -473,11 +483,10 @@ class simulation{
             setMonitoredCreature(creatures.at(getRandom(0, creatures.size()-1)));
 
             this->normalPopulationSize = populationSize;
+            this->currentPopulationDensity = (double)populationSize / (double)(row*col) * 100.0;
         }
 
-        simulation(vector<vector<creature*>> &mat){this->mat = mat;}
-
-        inline void screen(int loop, int generation, int sleep){
+        inline void screen(int loop, int generation, int sleep, const reproductionTypes REPRODUCTION, const survivalSpot SELECTION){
             clearScreen();
             if(mat.empty() || mat[0].empty()){throw invalid_argument("Matrix does not exist!\nCannot print.");}
 
@@ -486,7 +495,23 @@ class simulation{
                 
                 simulateGeneration(loop, sleep);
                 chooseReproducers(SELECTION);
-                reproduceSurvivalist2();
+                
+                switch (REPRODUCTION){
+                    case SURVIVALIST:
+                        reproduceSurvivalist();
+                        break;
+                    case CONST_POP:
+                        reproduceConstPop();
+                        break;
+                    case ELITIST:
+                        reproduceElitist();
+                        break;
+                    default:
+                        break;
+                }
+
+                // Calculate how successful the generation was
+                generationScore = (double)populationSize / (double)prevPopulationSize * 100.0;
 
                 // If there is no more creatures, terminate
                 if(populationSize == 0){
