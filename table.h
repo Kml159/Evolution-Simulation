@@ -1,4 +1,9 @@
 #include <iostream>
+// include windows.h for if you are using windows
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include "creature.h"
 
 using namespace std;
@@ -291,7 +296,6 @@ class table{
             clearScreen();                
             printInfo();
             print();
-            update();
             // randomCreature->printNeuronConnections();
         }
 
@@ -476,7 +480,12 @@ class table{
             for(int i=0; i < generation; i++){
                 for(int i=0; i < loop; i++){
                     screen();
+                    #ifdef _WIN32
+                    Sleep(sleep); // THIS WORKS ON WINDOWS
+                    #else
                     this_thread::sleep_for(chrono::milliseconds(sleep)); // THIS DOES NOT WORK ON WINDOWS
+                    #endif
+                    update();
                 }
                 chooseReproducers(SELECTION);
                 reproduceConstPop();

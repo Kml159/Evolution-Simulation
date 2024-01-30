@@ -24,6 +24,8 @@ enum class NeuronTypes{
     TOP_EYE,
     BOTTOM_EYE,
 
+    // ADD LOCATION NEURON holds the coordiantes !!!
+
     // MUSCLE
     GO_LEFT,
     GO_RIGHT,
