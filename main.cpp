@@ -26,7 +26,6 @@ using namespace std;
  * @param sleepDuration         The duration of sleep between each step.
  * @param reproductionType      How the creatures will reproduce.
  * @param survivalSpot          Where the creatures will be placed after each generation.
- *
  * 
  * @author Kml159.
  * @date 30.01.2024.
@@ -36,13 +35,14 @@ using namespace std;
 int main(){
 
     srand(static_cast<unsigned>(time(nullptr)));
+
     simulation A(50, 90, 0.1);
 
     int oneGeneration = 100;
     int numberOfGenerations = 20;
     int sleepDuration = 50;
 
-    A.screen(oneGeneration, numberOfGenerations, sleepDuration, reproductionTypes::ELITIST, survivalSpot::CENTER);   
+    A.screen(oneGeneration, numberOfGenerations, sleepDuration, reproductionTypes::ELITIST, survivalSpot::RIGHT);   
 
     return 0;
 }

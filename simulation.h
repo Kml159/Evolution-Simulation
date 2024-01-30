@@ -8,8 +8,6 @@
 
 using namespace std;
 
-#define asd 0.1         // Population density
-
 enum reproductionTypes{
     SURVIVALIST,
     CONST_POP,

@@ -4,7 +4,7 @@
 using namespace std;
 
 // Forward declaration
-#define maxConnection 26
+#define maxConnection 32
 #define maxInnerNeuron 6
 #define genomeLength 100
 
