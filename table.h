@@ -73,7 +73,8 @@ class table{
             << setw(30) << left <<  "Population Size: " + to_string(populationSize)
             << setw(30) << left <<  "Capacity: " + to_string(mat.size()*mat.at(0).size()) << endl
             << setw(30) << left <<  "Iteration: " + to_string(iteration++)
-            << setw(30) << left <<  "Generation: " + to_string(generationNumber) << RESET_TEXT << endl << endl;
+            << setw(30) << left <<  "Generation: " + to_string(generationNumber)
+            << setw(30) << left <<  "Reproducers: " + to_string(reproducers.size()) << RESET_TEXT << endl << endl;
         }
 
         void clearScreen() const {cout << "\033[H\033[J";}
@@ -190,9 +191,8 @@ class table{
             this->monitoredCreature->symbol = 'X';
             this->monitoredCreature->color = BOLD_WHITE_TEXT;
         }
-
+        
         inline void reproduceSurvivalist2(){
-            // Keep the population size constant
 
             clearCreaturesTable();
 
@@ -233,6 +233,58 @@ class table{
 
             reproducers.clear();
 
+        }
+
+        inline void reproduceConstPop(){
+            // Keep the population size constant
+
+            clearCreaturesTable();
+
+            shuffle(reproducers.begin(), reproducers.end(), mt19937(random_device()()));
+
+            bool flag = true;
+
+            if(reproducers.size() % 2 != 0){reproducers.pop_back();}
+
+            // Reproduce in pairs
+            for(int i=0; i < reproducers.size(); i+=2){
+
+                creature* A = reproducers.at(i);
+                creature* B = reproducers.at(i+1);
+
+                if(A == nullptr || B == nullptr){throw invalid_argument("Cannot reproduce, one of the creatures is nullptr!");}
+
+                // Create a new creature every 2 parents will create 2 children
+                creature* childA = A->reproduceWith(B);
+                creature* childB = B->reproduceWith(A);
+
+                // Select individual to monitor
+                if(flag){   
+                    setMonitoredCreature(childA);
+                    flag = false;
+                }
+
+                // Delete the parents
+                delete A;
+                delete B;
+
+                // Add the children to the next generation
+                putCreature(childA);
+                putCreature(childB);
+
+                populationSize += 2;
+            }
+
+            reproducers.clear();
+
+            while(populationSize < normalPopulationSize){
+                creature* ParentA = creatures.at(getRandom(0, creatures.size()-1));
+                creature* ParentB = creatures.at(getRandom(0, creatures.size()-1));
+
+                creature* childA = ParentA->reproduceWith(ParentB);
+
+                putCreature(childA);
+            }
         }
 
         inline void screen(){
@@ -416,12 +468,6 @@ class table{
 
         table(vector<vector<creature*>> &mat){this->mat = mat;}
 
-        table(table &table){
-            // Copy Constructor
-            this->mat = table.mat;
-            this->populationSize = table.populationSize;
-        }
-
         inline void screen(int loop, int generation, int sleep){
             clearScreen();
             if(mat.empty() || mat[0].empty()){throw invalid_argument("Matrix does not exist!\nCannot print.");}
@@ -433,7 +479,7 @@ class table{
                     this_thread::sleep_for(chrono::milliseconds(sleep)); // THIS DOES NOT WORK ON WINDOWS
                 }
                 chooseReproducers(SELECTION);
-                reproduceSurvivalist2();
+                reproduceConstPop();
 
                 // If there is no more creatures, terminate
                 if(populationSize == 0){
@@ -469,7 +515,7 @@ class table{
                     delete reproducers.at(i);
                     reproducers.at(i) = nullptr;
                 }
-            }
+            }            
 
             cout << GREEN_TEXT << "Program terminated successfully!" << RESET_TEXT << endl;
         }
