@@ -18,12 +18,31 @@ using namespace std;
 
 */
 
+/**
+ * @brief The main function of the program.
+ * 
+ * @param oneGeneration         The number of steps in one generation.
+ * @param numberOfGenerations   The number of generations.
+ * @param sleepDuration         The duration of sleep between each step.
+ * @param reproductionType      How the creatures will reproduce.
+ * @param survivalSpot          Where the creatures will be placed after each generation.
+ *
+ * 
+ * @author Kml159.
+ * @date 30.01.2024.
+ * @return An integer representing the exit status of the program.
+ */
+
 int main(){
 
     srand(static_cast<unsigned>(time(nullptr)));
-    simulation A(20, 50, 90, 0.1);
+    simulation A(50, 90, 0.1);
 
-    A.screen(100, 20, 50, reproductionTypes::ELITIST, survivalSpot::CENTER);   
+    int oneGeneration = 100;
+    int numberOfGenerations = 20;
+    int sleepDuration = 50;
+
+    A.screen(oneGeneration, numberOfGenerations, sleepDuration, reproductionTypes::ELITIST, survivalSpot::CENTER);   
 
     return 0;
 }

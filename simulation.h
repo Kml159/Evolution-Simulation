@@ -33,8 +33,6 @@ class simulation{
 
     private:
 
-        
-
         vector<vector<creature*>> mat;
         vector<creature*> creatures;
         vector<creature*> reproducers;
@@ -87,7 +85,8 @@ class simulation{
             cout << BOLD_CYAN_TEXT << setw(30) << left << "Init. Population: " + to_string(normalPopulationSize)
             << setw(30) << left <<  "Population Size: " + to_string(populationSize)
             << setw(30) << left <<  "Capacity: " + to_string(mat.size()*mat.at(0).size())
-            << setw(30) << left <<  "Population Density: " + to_string(currentPopulationDensity) << endl
+            << setw(30) << left <<  "Population Density: " + to_string(currentPopulationDensity) 
+            << endl
             << setw(30) << left <<  "Generation Score: " + to_string(generationScore)
             << setw(30) << left <<  "Iteration: " + to_string(iteration++)
             << setw(30) << left <<  "Generation: " + to_string(generationNumber)
@@ -459,7 +458,7 @@ class simulation{
 
     public:
 
-        simulation(unsigned int const individualNumber, unsigned int const row, unsigned int const col, double populationDensity = 0.2){
+        simulation(unsigned int const row, unsigned int const col, double populationDensity = 0.2){
 
             // Initialize pointer to creatureTable
             creatureTable = &mat;
@@ -468,7 +467,6 @@ class simulation{
             mat.resize(row, vector<creature*>(col, nullptr));
 
             // Constructor
-            if(row*col < individualNumber){throw invalid_argument("individualNumber is invalid!");};
             populationSize = 0;
             for(int i=0; i < row; i++){
                 for(int j=0; j < col; j++){

@@ -49,7 +49,6 @@ const static unsigned int NumberOfNeuronTypes = (int)(NeuronTypes::KILL)+1;
     - Muslce neurons only fires in first step, FIX THIS !!!!!!!!!!!!!!!!!!
 */
 
-
 struct neuron{
     
     double bias;

@@ -351,7 +351,7 @@ struct creature{
         color = next(begin(colorMap), distribution(gen))->second;
 
     }
-    
+
     creature(creature &creature){
         // Copy Constructor
         this->brain = creature.brain;
