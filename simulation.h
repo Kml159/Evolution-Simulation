@@ -125,6 +125,7 @@ class simulation{
         }
     
         inline void update(){
+            auto begin = chrono::high_resolution_clock::now();
             vector<thread> threads;
             for(int i=0; i < creatures.size(); i++){
                 // Create thread for each creature
@@ -133,6 +134,29 @@ class simulation{
             for(auto& t : threads){
                 t.join();
             }
+            auto end = chrono::high_resolution_clock::now();
+            auto duration = chrono::duration_cast<chrono::microseconds>(end - begin);
+            // print duration to txt file
+            ofstream file;
+            file.open("durations.txt", ios::app);
+            file << "Thread Duration: " << duration.count() << " microseconds" << endl;
+            file << "----------------" << endl;
+            file.close();   
+        }
+
+        inline void updateN(){
+            auto begin = chrono::high_resolution_clock::now();
+            for(int i=0; i < creatures.size(); creatures.at(i++)->action());
+            auto end = chrono::high_resolution_clock::now();
+            auto duration = chrono::duration_cast<chrono::microseconds>(end - begin);
+
+            // append duration to txt file
+            ofstream file;
+            file.open("durations.txt", ios::app);
+            file << "Normal Duration: " << duration.count() << " microseconds" << endl;
+            file << "----------------" << endl;
+            file.close();
+    
         }
 
         inline void clearCreaturesTable(){

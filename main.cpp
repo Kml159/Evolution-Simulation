@@ -37,7 +37,7 @@ int main(){
     simulation A(50, 90, 0.1);
 
     int oneGeneration =         100;
-    int numberOfGenerations =   20;
+    int numberOfGenerations =   10;
     int sleepDuration =         50;
 
     A.screen(oneGeneration, numberOfGenerations, sleepDuration, reproductionTypes::CONST_POP, survivalSpot::CENTER);   
