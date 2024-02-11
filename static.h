@@ -11,6 +11,9 @@
 #include <iomanip> 
 #include <iomanip> // Include the iomanip library
 #include <algorithm> 
+#include <fstream>
+
+#include <thread>
 
 // Define colors
 #define RED_TEXT "\033[31m"
@@ -34,10 +37,6 @@
 #define maybe (std::rand() % 2 == 0)
 
 using namespace std;
-
-int count3 = 0;
-int count4 = 0;
-int count5 = 0;
 
 // Define an enum named Operation
 enum class Action {
@@ -160,5 +159,37 @@ struct activationFunctions {
 
     static double relu(double x) {
         return max(0.0, x);
+    }
+
+    static double tanh(double x) {
+        return (exp(x) - exp(-x)) / (exp(x) + exp(-x));
+    }
+
+    static double identity(double x) {
+        return x;
+    }
+
+    static double binaryStep(double x) {
+        return (x < 0) ? 0 : 1;
+    }
+
+    static double softsign(double x) {
+        return x / (1 + abs(x));
+    }
+
+    static double softplus(double x) {
+        return log(1 + exp(x));
+    }
+
+    static double gaussian(double x) {
+        return exp(-pow(x, 2));
+    }
+
+    static double sine(double x) {
+        return sin(x);
+    }
+
+    static double logarithmic(double x) {
+        return log(x);
     }
 };

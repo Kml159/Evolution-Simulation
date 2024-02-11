@@ -61,6 +61,8 @@ struct genome{
         genome* B = &other;
         genome child;
 
+        // IRRELEVANT CONNECTIONS MIGHT CROSSED OVER FIX THAT !!!
+
         /*
             Parent A:  0-0011111-0-0000110-01100010000101110100010111000110
             Parent B:  1-0000000-1-0000110-01111011011101100101011011000110

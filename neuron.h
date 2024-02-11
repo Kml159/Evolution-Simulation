@@ -4,9 +4,14 @@
 using namespace std;
 
 // Forward declaration
-#define maxConnection 32
-#define maxInnerNeuron 6
+#define maxConnection 12
+#define maxInnerNeuron 4
 #define genomeLength 100
+
+// Outputs
+#define negMax -8.0
+#define posMax 8.0
+#define zero 0.0
 
 // Declaretions 
 struct creature;
@@ -49,7 +54,10 @@ const static unsigned int NumberOfNeuronTypes = (int)(NeuronTypes::KILL)+1;
     - Muslce neurons only fires in first step, FIX THIS !!!!!!!!!!!!!!!!!!
 */
 
+
 struct neuron{
+
+    double (*activationFunction)(double) = activationFunctions::relu;
     
     double bias;
     double accumulation;
@@ -73,9 +81,9 @@ struct neuron{
         this->coord = neuron.coord;
     }
 
-    void setPTR(pair<int, int> &coord){this->coord = &coord;}
+    inline void setPTR(pair<int, int> &coord){this->coord = &coord;}
     
-    void conditionallyDo() {
+    inline void conditionallyDo() {
         // If output is positive do the action
         if(output > 0){
             unconditionallyDo();
@@ -88,7 +96,6 @@ struct neuron{
     inline void accumulateInput(const double input){accumulation += input;}
     
     inline void reset(){
-        // if(this == nullptr){throw invalid_argument("Neuron does not exist!");}
         accumulation = 0.0; 
         output = 0.0;
     }
@@ -97,7 +104,7 @@ struct neuron{
         // Calculate output by applying activation function to accumulation
         // output = activationFunctions::relu(bias + (W_1 * A_1 + W_2 * A_2 + W_3 * A_3 + ... + W_n * A_n));
         accumulation += bias;
-        output = activationFunctions::relu(accumulation);
+        output = activationFunction(accumulation);
     }
 
     bool isOutOfBounds() const {
@@ -142,8 +149,8 @@ struct neuron{
 struct leftEye: neuron{       
     double getOutput() const override {
         // If there is a creature left of the current creature return 1.0, else return 0.0
-        if(isOutOfBounds(coord->first, coord->second-1)){return -1.0;}                               // If there is a wall
-        if(isOccupied(coord->first, coord->second-1)){return 1.0;}      // If there is a creature
+        if(isOutOfBounds(coord->first, coord->second-1)){return negMax;}                               // If there is a wall
+        if(isOccupied(coord->first, coord->second-1)){return posMax;}      // If there is a creature
         return 0.0;
     }
 
@@ -155,8 +162,8 @@ struct rightEye: neuron{
 
     double getOutput() const override {
         // If there is a creature right of the current creature return 1.0, else return 0.0
-        if(isOutOfBounds(coord->first, coord->second+1)){return -1.0;}                               // If there is a wall
-        if(isOccupied(coord->first, coord->second+1)){return 1.0;}      // If there is a creature
+        if(isOutOfBounds(coord->first, coord->second+1)){return negMax;}                               // If there is a wall
+        if(isOccupied(coord->first, coord->second+1)){return posMax;}      // If there is a creature
         return 0.0;
     }
 
@@ -166,8 +173,8 @@ struct rightEye: neuron{
 struct topEye: neuron{
     double getOutput() const override {
         // If there is a creature above the current creature return 1.0, else return 0.0
-        if(isOutOfBounds(coord->first-1, coord->second)){return -1.0;}                               // If there is a wall
-        if(isOccupied(coord->first-1, coord->second)){return 1.0;}      // If there is a creature
+        if(isOutOfBounds(coord->first-1, coord->second)){return negMax;}                               // If there is a wall
+        if(isOccupied(coord->first-1, coord->second)){return posMax;}      // If there is a creature
         return 0.0;
     }
 
@@ -177,8 +184,8 @@ struct topEye: neuron{
 struct bottomEye: neuron{
     double getOutput() const override {
         // If there is a creature below the current creature return 1.0, else return 0.0
-        if(isOutOfBounds(coord->first+1, coord->second)){return -1.0;}                               // If there is a wall
-        if(isOccupied(coord->first+1, coord->second)){return 1.0;}      // If there is a creature
+        if(isOutOfBounds(coord->first+1, coord->second)){return negMax;}                               // If there is a wall
+        if(isOccupied(coord->first+1, coord->second)){return posMax;}      // If there is a creature
         return 0.0;
     }
 
@@ -189,7 +196,7 @@ struct bottomEye: neuron{
 struct lateralLocation: neuron{
 
     double getOutput() const override {
-        // Left: -1.0, Center: 0.0, Right: 1.0
+        // Left: negMax, Center: 0.0, Right: 1.0
         int location = coord->second;
         int size = creatureTable->at(0).size();
         return continuous(size, location);
@@ -201,7 +208,7 @@ struct lateralLocation: neuron{
 struct verticalLocation: neuron{
 
     double getOutput() const override {
-        // Top: -1.0, Center: 0.0, Bottom: 1.0
+        // Top: negMax, Center: 0.0, Bottom: 1.0
         int location = coord->first;
         int size = creatureTable->size();
         return continuous(size, location);
@@ -264,5 +271,7 @@ struct kill: neuron{
 // INNER NEURONS
 struct inner: neuron{
     
-    void unconditionallyDo() override {}
+    void unconditionallyDo() override {
+        
+    }
 };

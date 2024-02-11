@@ -1,0 +1,7 @@
+Simulation identity: 0x16bd47480
+Population density: 10.5111
+Generation score: 100
+Generation number: 21
+Iteration: 1
+DNA: 
+--------------------------------------------------

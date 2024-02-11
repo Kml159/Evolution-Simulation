@@ -6,11 +6,9 @@ using namespace std;
 /*
     TO DO's:
 
-    - Write a function that calculates standard deviation of DNA begin to end of single creature
-    - put creatures into vector !!!
-    - use mutate
-    - figure out why creatures are not moving after 1-2 generations
-    - print the changes in single DNA
+    - Cross over function is problematic. Irrelevant connections might be crossed over. FIX THIS !!!!
+    - Destination neurons should only be muscle or inner neurons. FIX THIS !!!!
+    - Bias is not updated. FIX THIS !!!!
 
     DONE:
 
@@ -36,13 +34,13 @@ int main(){
 
     srand(static_cast<unsigned>(time(nullptr)));
 
-    simulation A(50, 90, 0.5);
+    simulation A(50, 90, 0.1);
 
-    int oneGeneration = 100;
-    int numberOfGenerations = 20;
-    int sleepDuration = 50;
+    int oneGeneration =         100;
+    int numberOfGenerations =   20;
+    int sleepDuration =         50;
 
-    A.screen(oneGeneration, numberOfGenerations, sleepDuration, reproductionTypes::ELITIST, survivalSpot::RIGHT);   
+    A.screen(oneGeneration, numberOfGenerations, sleepDuration, reproductionTypes::CONST_POP, survivalSpot::CENTER);   
 
     return 0;
 }

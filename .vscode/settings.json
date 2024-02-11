@@ -55,7 +55,8 @@
         "typeinfo": "cpp",
         "variant": "cpp",
         "algorithm": "cpp",
-        "__assert": "cpp"
+        "__assert": "cpp",
+        "fstream": "cpp"
     },
     "C_Cpp.default.compilerPath": "/usr/bin/clang"
 }

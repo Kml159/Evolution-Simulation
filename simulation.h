@@ -125,7 +125,14 @@ class simulation{
         }
     
         inline void update(){
-            for(int i=0; i < creatures.size(); creatures.at(i++)->action());
+            vector<thread> threads;
+            for(int i=0; i < creatures.size(); i++){
+                // Create thread for each creature
+                threads.push_back(thread(&creature::action, creatures.at(i)));
+            }
+            for(auto& t : threads){
+                t.join();
+            }
         }
 
         inline void clearCreaturesTable(){
@@ -429,6 +436,28 @@ class simulation{
                     }
                     break;
                 
+                case LEFT_RIGHT: // Left %20 and right %20 of the screen will reproduce
+                    // Left 20%
+                    for(int i=0; i < mat.size(); i++){
+                        for(int j=0; j < mat.at(0).size()*0.2; j++){
+                            if(mat.at(i).at(j) != nullptr){
+                                reproducers.push_back(mat.at(i).at(j));
+                            }
+                        }
+                    }
+
+                    // Right 20%
+                    for(int i=0; i < mat.size(); i++){
+                        for(int j=mat.at(0).size()*0.8; j < mat.at(0).size(); j++){
+                            if(mat.at(i).at(j) != nullptr){
+                                reproducers.push_back(mat.at(i).at(j));
+                            }
+                        }
+                    }
+                    break;
+
+            
+                
                 default:
                     break;
             }
@@ -522,6 +551,42 @@ class simulation{
                 iteration = 1;
                 generationNumber++;
             }
+
+            // Write simulation details to txt file
+            write2Txt();
+        }
+
+        inline void write2Txt(){
+            /*
+                Write following deatils to txt file:
+                    - simulation identity (this)
+                    - What activation function were used
+                    - What was the population density
+                    - What was the reproduction type
+                    - What was the survival spot
+                    - What was the generation score
+                    - How many generation did the simulation run
+                    - How many iterations did the simulation run
+                    - DNA of the last creature
+            */
+
+            ofstream file;
+            file.open("simulation.txt");
+
+            file << "Simulation identity: " << this << endl;
+            // file << "Activation function: " << activationFunction << endl;
+            file << "Population density: " << currentPopulationDensity << endl;
+            // file << "Reproduction type: " << reproductionType << endl;
+            // file << "Survival spot: " << survivalSpot << endl;
+            file << "Generation score: " << generationScore << endl;
+            file << "Generation number: " << generationNumber << endl;
+            file << "Iteration: " << iteration << endl;
+            file << "DNA: " << endl;
+            file << "--------------------------------------------------" << endl;
+
+            file.close();
+
+
         }
 
         ~simulation() {
@@ -544,7 +609,7 @@ class simulation{
                     reproducers.at(i) = nullptr;
                 }
             }            
-
+            
             cout << GREEN_TEXT << "Program terminated successfully!" << RESET_TEXT << endl;
         }
 };
