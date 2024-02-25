@@ -1,7 +1,7 @@
 # Evolution Simulation
 
 ## How to run?  
-You can run the main.cpp. There are no dependencies.
+You can run the main.cpp. There are no dependencies. Run on C++17.
   
 Linux & Unix:  
 ```bash
