@@ -1,7 +1,7 @@
 # Evolution Simulation
 
 ## How to run?  
-You can run the main.cpp. There are no dependencies. Run on C++17.
+You can run the main.cpp. There are no external dependencies. Run on C++17.
   
 MacOS:  
 ```bash
