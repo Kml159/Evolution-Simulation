@@ -3,7 +3,7 @@
 ## How to run?  
 You can run the main.cpp. There are no dependencies. Run on C++17.
   
-Linux & Unix:  
+MacOS:  
 ```bash
 cd "path/to/folder/Evolution-Simulation/" && g++ -std=c++17 main.cpp -o main && "path/to/folder/Evolution-Simulation/"main
 ```
