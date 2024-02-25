@@ -34,13 +34,13 @@ int main(){
 
     srand(static_cast<unsigned>(time(nullptr)));
 
-    simulation A(50, 90, 0.1);
+    simulation A(50, 90, 0.7);
 
     int oneGeneration =         100;
     int numberOfGenerations =   10;
     int sleepDuration =         50;
 
-    A.screen(oneGeneration, numberOfGenerations, sleepDuration, reproductionTypes::CONST_POP, survivalSpot::CENTER);   
+    A.screen(oneGeneration, numberOfGenerations, sleepDuration, reproductionTypes::SURVIVALIST, survivalSpot::RIGHT);   
 
     return 0;
 }
