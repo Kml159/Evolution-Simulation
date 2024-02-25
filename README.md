@@ -42,7 +42,7 @@ The creatures will be placed in the world. The creatures will be given a random 
 
 ## Reproduction
 ### Survival Spot  
-There are the many modes how the reproduces will choosen. Righ-Half, Left-Half, etc. For example for Right-Half, right-hlaf of the screen choosen as reproducers.
+There are the many modes how the reproducers will choosen. Some modes are Righ-Half, Left-Half, etc. For example for Right-Half, right-half of the screen choosen as reproducers.
 ### Reproduction Types  
 There are 3 types of reproduction so far. Survivalist, Constant Population, and Elitist. 
 - Survivalist: The classic reproduction type. Based on nature, in this reproduction type. Next generation will be same number as choosen reproducers.
@@ -50,7 +50,7 @@ There are 3 types of reproduction so far. Survivalist, Constant Population, and 
 - Elitist: The parents will not die. For every two parent, one child and one parent will be added to the next generation.
 
 ### Note
-Reprodution is problematic. Crossover is happening with irrelevant connections, thus causing loss of genetic information of the reproducers in newer generations. This prevents the individual's DNA to converge!
+Reproduction is problematic. Crossover is happening with irrelevant connections, thus causing loss of genetic information of the reproducers in newer generations. This prevents the individual's DNA to converge!
 
 ## Simulation
 ![Alt text](img/sim01.png)
